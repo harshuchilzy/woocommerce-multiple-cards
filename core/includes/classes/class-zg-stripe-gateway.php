@@ -42,7 +42,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
     public function append_spinner()
     {
-        if($this->enabled){
+        if ($this->enabled) {
             echo '<canvas id="cards-spinner"></canvas>';
         }
     }
@@ -118,41 +118,113 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
         // Add this action hook if you want your custom payment gateway to support it
         do_action('woocommerce_credit_card_form_start', $this->id); ?>
+        <script src="https://js.stripe.com/v3/"></script>
         <div class="zg-stripe-main-wrapper">
 
             <div class="step first-step">
-        <h4>Split your payment cross multiple cards.</h4>
+                <h4>Split your payment cross multiple cards.</h4>
 
                 <!-- Wheel picker -->
                 <div id="spinner-here">
                     <p>SPlit your payment into how many cards?</p>
                     <canvas id="cards-spinner" height="50px" width="100%"></canvas>
-                    <button class="red-btn next-btn" type="button">Next</button>
+                    <div class="button-wrap justify-center">
+                        <button class="red-btn next-btn" type="button">Next</button>
+                    </div>
                 </div>
                 <!-- End - Wheel picker -->
             </div>
 
-            <div class="step second-step">
-            <h4>Enter the amount you would like to pay with your First Card.</h4>
-                
-            2</div>
+            <div class="step second-step repeatable-card" data-index="1" style="display: nonez">
+                <div>
+                    <span class="text-right w-100 inline-block">2 of 8</span>
+                    <div class="bar-wrap">
+                        <div class="bar w-20"></div>
+                    </div>
+                </div>
+                <h4>Enter the amount you would like to pay with your <b>First Card.</b></h4>
+                <div class="step-inner">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><?php echo get_woocommerce_currency_symbol(); ?></span>
+                        </div>
+                        <input type="number" class="form-control card-val" step="0.01" placeholder="100">
+                    </div>
+                    <div class="predefine-value-wrapper">
+                        <?php
+                        $cartTotal = WC()->cart->total;
+                        for ($i = $cartTotal / 4; $i <= $cartTotal; $i += $cartTotal / 4) {
+                            $value = number_format(round($i - 1, 0, PHP_ROUND_HALF_DOWN), 2);
+                            echo "<button class='pink-btn assign-value' value='{$value}' type='button'>" . wc_price($value) . "</button>";
+                        }
+                        ?>
+                    </div>
+
+                    <div class="amount-left-to-pay">
+                        <span>Amount left to pay</span>
+                        <span class="amount-to-pay"><?php echo wc_price(WC()->cart->total); ?></span>
+                    </div>
+                </div>
+                <div class="button-wrap">
+                    <button class="red-btn prev-btn" type="button"><i class="fas fa-chevron-left"></i> Back</button>
+                    <button class="red-btn next-btn" type="button">Next</button>
+                </div>
+            </div>
+
+            <div class="step second-step repeatable-card" data-index="1" style="display: nonez">
+                <div>
+                    <span class="text-right w-100 inline-block">2 of 8</span>
+                    <div class="bar-wrap">
+                        <div class="bar w-40"></div>
+                    </div>
+                </div>
+                <h4>This card will be charged <b class="card-chargable">0</b></h4>
+                <div class="step-inner">
+                    <div class="card-element"><!--Stripe.js injects the Card Element--></div>
+                    <div class="form-row form-row-wide"><label>Card Number</label>
+                        <input class="card_ccNo" type="text" autocomplete="off">
+                    </div>
+                    <div class="form-row form-row-first">
+                        <label>Expiry Date</label>
+                        <input id="card_expdate" type="text" autocomplete="off" placeholder="MM / YY">
+                    </div>
+                    <div class="form-row form-row-last">
+                        <label>Cvv</label>
+                        <input id="card_cvv" type="password" autocomplete="off" placeholder="CVC">
+                    </div>
+                    <div class="clear"></div>
+
+                    <div class="amount-left-to-pay">
+                        <span>Amount left to pay</span>
+                        <span class="card-amount-to-pay"><?php echo wc_price(WC()->cart->total); ?></span>
+                    </div>
+
+                    <div class="button-wrap">
+                        <button class="red-btn prev-btn" type="button"><i class="fas fa-chevron-left"></i> Back</button>
+                        <button class="red-btn next-btn" type="button">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step second-step" style="display: nonez">
+                <div>
+                    <span class="text-right w-100 inline-block">2 of 8</span>
+                    <div class="bar-wrap">
+                        <div class="bar w-90"></div>
+                    </div>
+                </div>
+                <h4>These cards will charged the respective amounts. tap any row to edit card or amount</h4>
+                <div class="step-inner">
+                    <ul class="cards-list">
+                        <li>
+
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
 <?php
-        // I recommend to use inique IDs, because other gateways could already use #ccNo, #expdate, #cvc
-        // echo '<div class="form-row form-row-wide"><label>Card Number <span class="required">*</span></label>
-        //     <input id="misha_ccNo" type="text" autocomplete="off">
-        //     </div>
-        //     <div class="form-row form-row-first">
-        //         <label>Expiry Date <span class="required">*</span></label>
-        //         <input id="misha_expdate" type="text" autocomplete="off" placeholder="MM / YY">
-        //     </div>
-        //     <div class="form-row form-row-last">
-        //         <label>Card Code (CVC) <span class="required">*</span></label>
-        //         <input id="misha_cvv" type="password" autocomplete="off" placeholder="CVC">
-        //     </div>
-        //     <div class="clear"></div>';
-
-        do_action('woocommerce_credit_card_form_end', $this->id);
+        do_action('woocommerce_zg_credit_card_form_end', $this->id);
 
         echo '<div class="clear"></div></fieldset>';
     }
@@ -174,13 +246,14 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         }
         wp_enqueue_script('zg-number-spinner-picker-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/spinner_picker.js', array('jquery'), '1.0', true);
         // wp_enqueue_script('zg-jquery-steps-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.steps.min.js', array('jquery'), '1.0', true);
-        wp_register_script('zg-stripe-gateway', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/zg-stripe.js', array('jquery', 'zg-number-spinner-picker-js', 'zg-jquery-steps-js'));
+        wp_register_script('zg-stripe-gateway', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/zg-stripe.js', array('jquery', 'zg-number-spinner-picker-js'));
         wp_localize_script('zg-stripe-gateway', 'zg', array(
-            'publishableKey' => $this->publishable_key
+            'publishableKey' => $this->publishable_key,
+            'orderTotal' => WC()->cart->total,
+            'currency' => get_woocommerce_currency_symbol()
         ));
         wp_enqueue_script('zg-stripe-gateway');
         wp_enqueue_style('zg-stripe-css', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/css/zg-stripe.css', array(), '1.0.0');
-
     }
 
     public function validate_fields()

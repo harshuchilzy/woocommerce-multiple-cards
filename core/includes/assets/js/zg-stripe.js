@@ -1,14 +1,54 @@
 jQuery(document).ready(function ($) {
+  console.log(zg);
 
-  $(document).on('click', '.next-btn', function(){
-    $(this).parents('steps').hide('slow');
-    $(this).parents('steps').siblings('steps'),show('slow');
+  $("form.woocommerce-checkout").on("click", ".next-btn", function (e) {
+    e.preventDefault();
+    console.log("next click");
+    $(this).parents(".step").hide("slow");
+    $(this).parents(".step").nextAll(".step").first().show("slow");
   });
 
+  $(document).on("click", ".assign-value", function () {
+    $(this).parents(".step-inner").find(".card-val").val($(this).val()).trigger("change");
+  });
+
+  $(document).on("change", ".card-val", function (e) {
+    let cartTotal = zg.orderTotal;
+    let amountToPay = cartTotal - $(this).val();
+    amountToPay = zg.currency + amountToPay.toFixed(2);
+    $(this).parents(".step-inner").find(".amount-to-pay").text(amountToPay);
+    $(this).parents(".step").next().find(".card-amount-to-pay").text(amountToPay);
+    $(this)
+      .parents(".step")
+      .next()
+      .find(".card-chargable")
+      .text(zg.currency + $(this).val());
+  });
+
+  $("form.woocommerce-checkout").on("click", ".prev-btn", function (e) {
+    e.preventDefault();
+    console.log("prev click");
+    $(this).parents(".step").hide("slow");
+    $(this).parents(".step").prevAll(".step").first().show("slow");
+  });
+
+  $(document).on('change', '.card_ccNo', function(){
+    let type = creditCardType($(this).val());
+    $(this).after('<input type="hidden" class="ccType" value="'+type+'"/>')
+  })
+
   let cardsCount = 1;
-  $(document).on('updated_checkout', function (e) {
+  $(document).on("updated_checkout", function (e) {
     var onchanged = function (index) {
-      cardsCount = index
+      cardsCount = index;
+      let cloneEle =$('.repeatable-card').clone();
+      for (let i = 1; i < index; i++) {
+        // const element = array[index];
+        $(cloneEle).find('.step').attr('data-index', i);
+        $(cloneEle).appendTo('.zg-stripe-main-wrapper');
+      }
+      
+      
     };
     new SpinnerPicker(
       document.getElementById("cards-spinner"),
@@ -18,11 +58,13 @@ jQuery(document).ready(function ($) {
           return null;
         }
         return index;
-      }, {
-      index: 1,
-      width: 10,
-      height: 15
-    }, onchanged
+      },
+      {
+        index: 1,
+        width: 10,
+        height: 15,
+      },
+      onchanged
     );
 
     // $('.zg-stripe-main-wrapper').steps({
@@ -31,5 +73,45 @@ jQuery(document).ready(function ($) {
     //   transitionEffect: "slideLeft",
     //   autoFocus: true
     // });
-  })
-})
+  });
+
+  function creditCardType(cc) {
+    let amex = new RegExp("^3[47][0-9]{13}$");
+    let visa = new RegExp("^4[0-9]{12}(?:[0-9]{3})?$");
+    let cup1 = new RegExp("^62[0-9]{14}[0-9]*$");
+    let cup2 = new RegExp("^81[0-9]{14}[0-9]*$");
+
+    let mastercard = new RegExp("^5[1-5][0-9]{14}$");
+    let mastercard2 = new RegExp("^2[2-7][0-9]{14}$");
+
+    let disco1 = new RegExp("^6011[0-9]{12}[0-9]*$");
+    let disco2 = new RegExp("^62[24568][0-9]{13}[0-9]*$");
+    let disco3 = new RegExp("^6[45][0-9]{14}[0-9]*$");
+
+    let diners = new RegExp("^3[0689][0-9]{12}[0-9]*$");
+    let jcb = new RegExp("^35[0-9]{14}[0-9]*$");
+
+    if (visa.test(cc)) {
+      return "VISA";
+    }
+    if (amex.test(cc)) {
+      return "AMEX";
+    }
+    if (mastercard.test(cc) || mastercard2.test(cc)) {
+      return "MASTERCARD";
+    }
+    if (disco1.test(cc) || disco2.test(cc) || disco3.test(cc)) {
+      return "DISCOVER";
+    }
+    if (diners.test(cc)) {
+      return "DINERS";
+    }
+    if (jcb.test(cc)) {
+      return "JCB";
+    }
+    if (cup1.test(cc) || cup2.test(cc)) {
+      return "CHINA_UNION_PAY";
+    }
+    return undefined;
+  }
+});
