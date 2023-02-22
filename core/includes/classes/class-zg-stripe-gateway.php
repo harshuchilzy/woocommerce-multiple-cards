@@ -125,7 +125,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
                 <!-- Wheel picker -->
                 <div id="spinner-here">
-                    <p>SPlit your payment into how many cards?</p>
+                    <p>Split your payment into how many cards?</p>
                     <canvas id="cards-spinner" height="50px" width="100%"></canvas>
                     <div class="button-wrap justify-center">
                         <button class="red-btn next-btn" type="button">Next</button>
