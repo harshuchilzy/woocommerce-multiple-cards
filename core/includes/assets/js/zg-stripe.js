@@ -32,39 +32,66 @@ jQuery(document).ready(function ($) {
     $(this).parents(".step").prevAll(".step").first().show("slow");
   });
 
-  $(document).on('change', '.card_ccNo', function(){
+  $(document).on('change', '.card_ccNo', function () {
     let type = creditCardType($(this).val());
-    $(this).after('<input type="hidden" class="ccType" value="'+type+'"/>')
+    $(this).after('<input type="hidden" class="ccType" value="' + type + '"/>')
   })
 
   let cardsCount = 1;
   $(document).on("updated_checkout", function (e) {
     var onchanged = function (index) {
       cardsCount = index;
-      let cloneEle =$('.repeatable-card').clone();
-      for (let i = 1; i < index; i++) {
-        // const element = array[index];
-        $(cloneEle).find('.step').attr('data-index', i);
-        $(cloneEle).appendTo('.zg-stripe-main-wrapper');
+      let cloneCardAmountEle = $('.card-amount-wrap').first().clone();
+      let cloneCardEle = $('.card-element-wrap').first().clone();
+
+      for (let i = 1; i <= index; i++) {
+        if($('.card-amount-wrap[data-index="'+i+'"]').length <= 0){
+          $(cloneCardAmountEle).attr('data-index', i);
+
+          $(cloneCardAmountEle).find('input').each(function(key, ele){
+            let name = $(ele).data('name');
+            $(ele).attr('name', 'card['+i+']['+name+']')
+          })
+
+          $(cloneCardAmountEle).insertBefore('.last-step');
+
+
+          $(cloneCardEle).attr('data-index', i);
+          $(cloneCardEle).find('input').each(function(key, ele){
+            let name = $(ele).data('name');
+            $(ele).attr('name', 'card['+i+']['+name+']')
+          })
+          $(cloneCardEle).insertBefore('.last-step');
+        }
       }
-      
-      
+      if(index < $('.card-amount-wrap').length){
+        console.log($('.card-amount-wrap').length + 'lala' + index)
+
+        for (let j = 0; j <= $('.card-amount-wrap').length; j++) {
+          if(j <= index){
+            continue;
+          }
+          console.log('delete' + j)
+          $('.step[data-index='+j+']').remove()
+        }
+      }
+
+
     };
-    new SpinnerPicker(
-      document.getElementById("cards-spinner"),
-      function (index) {
+    new SpinnerPicker( document.getElementById("cards-spinner"), function (index) {
         // Check if the index is below zero or above 10 - Return null in this case
         if (index < 0 || index > 10) {
           return null;
         }
+        if(index == 0){
+          return 1;
+        }
         return index;
-      },
-      {
+      }, {
         index: 1,
         width: 10,
         height: 15,
-      },
-      onchanged
+      }, onchanged
     );
 
     // $('.zg-stripe-main-wrapper').steps({

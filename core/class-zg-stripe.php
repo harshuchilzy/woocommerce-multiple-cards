@@ -110,7 +110,8 @@ if ( ! class_exists( 'Zg_Stripe' ) ) :
 			require_once ZGSTRIPE_PLUGIN_DIR . 'core/includes/classes/class-zg-stripe-settings.php';
 
 			require_once ZGSTRIPE_PLUGIN_DIR . 'core/includes/classes/class-zg-stripe-run.php';
-			require_once ZGSTRIPE_PLUGIN_DIR . 'core/includes/classes/class-zg-stripe-gateway.php';
+			// if ( class_exists( 'woocommerce' ) ) {
+			// }
 
 		}
 
@@ -134,6 +135,7 @@ if ( ! class_exists( 'Zg_Stripe' ) ) :
 		 */
 		public function load_textdomain() {
 			load_plugin_textdomain( 'zg-stripe', FALSE, dirname( plugin_basename( ZGSTRIPE_PLUGIN_FILE ) ) . '/languages/' );
+			require_once ZGSTRIPE_PLUGIN_DIR . 'core/includes/classes/class-zg-stripe-gateway.php';
 		}
 
 	}

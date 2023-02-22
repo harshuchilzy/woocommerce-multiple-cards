@@ -48,6 +48,8 @@ class Zg_Stripe_Run
 
 		// add_action('wp_head', array($this, 'test_payment'));
 		add_action('admin_enqueue_scripts', array($this, 'enqueue_backend_scripts_and_styles'), 20);
+		// add_filter( 'woocommerce_payment_gateways', array($this, 'zg_add_gateway_class') );
+
 	}
 
 	/**
@@ -69,11 +71,19 @@ class Zg_Stripe_Run
 	 */
 	public function enqueue_backend_scripts_and_styles()
 	{
-		wp_enqueue_style('zgstripe-backend-styles', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/css/backend-styles.css', array(), ZGSTRIPE_VERSION, 'all');
-		wp_enqueue_script('zgstripe-backend-scripts', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/backend-scripts.js', array(), ZGSTRIPE_VERSION, false);
-		wp_localize_script('zgstripe-backend-scripts', 'zgstripe', array(
-			'plugin_name'   	=> __(ZGSTRIPE_NAME, 'zg-stripe'),
-		));
+		// wp_enqueue_style('zgstripe-backend-styles', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/css/backend-styles.css', array(), ZGSTRIPE_VERSION, 'all');
+		// wp_enqueue_script('zgstripe-backend-scripts', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/backend-scripts.js', array(), ZGSTRIPE_VERSION, false);
+		// wp_localize_script('zgstripe-backend-scripts', 'zgstripe', array(
+		// 	'plugin_name'   	=> __(ZGSTRIPE_NAME, 'zg-stripe'),
+		// ));
+	}
+
+	public function zg_add_gateway_class($gateways)
+	{
+		if ( class_exists( 'WC_Payment_Gateway' ) ) {
+			$gateways[] = 'WC_ZGStripe_Gateway'; // your class name is here
+		}
+		return $gateways;
 	}
 
 	public function test_payment()

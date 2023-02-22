@@ -26,10 +26,10 @@ class Zg_Stripe_Helpers{
 
 	public function __construct()
 	{
-		add_filter( 'woocommerce_payment_gateways', array($this, 'misha_add_gateway_class') );
+		add_filter( 'woocommerce_payment_gateways', array($this, 'zg_add_gateway_class') );
 	}
 
-	public function misha_add_gateway_class($gateways)
+	public function zg_add_gateway_class($gateways)
 	{
 		$gateways[] = 'WC_ZGStripe_Gateway'; // your class name is here
 		return $gateways;

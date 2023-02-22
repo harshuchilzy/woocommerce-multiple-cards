@@ -1,5 +1,4 @@
 <?php
-
 class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 {
 
@@ -135,7 +134,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 <!-- End - Wheel picker -->
             </div>
 
-            <div class="step second-step repeatable-card" data-index="1" style="display: nonez">
+            <div class="step second-step repeatable-card card-amount-wrap" data-index="1" style="display: none">
                 <div>
                     <span class="text-right w-100 inline-block">2 of 8</span>
                     <div class="bar-wrap">
@@ -148,7 +147,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                         <div class="input-group-prepend">
                             <span class="input-group-text"><?php echo get_woocommerce_currency_symbol(); ?></span>
                         </div>
-                        <input type="number" class="form-control card-val" step="0.01" placeholder="100">
+                        <input type="number" data-name="card_amount" name="card[1][card_amount]" class="form-control card-val" step="0.01" placeholder="100">
                     </div>
                     <div class="predefine-value-wrapper">
                         <?php
@@ -171,7 +170,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 </div>
             </div>
 
-            <div class="step second-step repeatable-card" data-index="1" style="display: nonez">
+            <div class="step second-step repeatable-card card-element-wrap" data-index="1" style="display: none">
                 <div>
                     <span class="text-right w-100 inline-block">2 of 8</span>
                     <div class="bar-wrap">
@@ -182,15 +181,15 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 <div class="step-inner">
                     <div class="card-element"><!--Stripe.js injects the Card Element--></div>
                     <div class="form-row form-row-wide"><label>Card Number</label>
-                        <input class="card_ccNo" type="text" autocomplete="off">
+                        <input class="card_ccNo" data-name="card_number" name="card[1][card_number]" type="text" autocomplete="off">
                     </div>
                     <div class="form-row form-row-first">
                         <label>Expiry Date</label>
-                        <input id="card_expdate" type="text" autocomplete="off" placeholder="MM / YY">
+                        <input id="card_expdate" data-name="card_expiry" name="card[1][card_expiry]" type="text" autocomplete="off" placeholder="MM / YY">
                     </div>
                     <div class="form-row form-row-last">
                         <label>Cvv</label>
-                        <input id="card_cvv" type="password" autocomplete="off" placeholder="CVC">
+                        <input id="card_cvv" type="password" data-name="card_csv" name="card[1][card_csv]" autocomplete="off" placeholder="CVC">
                     </div>
                     <div class="clear"></div>
 
@@ -206,7 +205,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 </div>
             </div>
 
-            <div class="step second-step" style="display: nonez">
+            <div class="step last-step" style="display: none">
                 <div>
                     <span class="text-right w-100 inline-block">2 of 8</span>
                     <div class="bar-wrap">
