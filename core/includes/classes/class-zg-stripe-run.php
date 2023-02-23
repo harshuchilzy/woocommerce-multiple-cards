@@ -49,9 +49,98 @@ class Zg_Stripe_Run
 		// add_action('wp_head', array($this, 'test_payment'));
 		add_action('admin_enqueue_scripts', array($this, 'enqueue_backend_scripts_and_styles'), 20);
 		// add_filter( 'woocommerce_payment_gateways', array($this, 'zg_add_gateway_class') );
-
+		add_action("wp_ajax_ajaxify_cards", array($this, "ajaxify_cards"));
+        add_action("wp_ajax_nopriv_ajaxify_cards", array($this, "ajaxify_cards"));
 	}
 
+	public function ajaxify_cards()
+    {
+        if ( !wp_verify_nonce( $_REQUEST['nonce'], "zg_cards_nonce")) {
+            exit("Woof Woof Woof");
+        }
+		parse_str($_POST['form'], $form);
+		$email = $form['billing_email'];
+		$cards= $form['card'];
+
+		$options = get_option( 'woocommerce_zg-stripe_settings' );
+		if($options['testmode'] == 'yes'){
+			$publicKey = $options['test_private_key'];
+		}else{
+			$publicKey = $options['private_key'];
+		}
+		// echo $options['test_publishable_key'];
+		$stripe = new \Stripe\StripeClient($publicKey);
+
+		$customers = $stripe->customers->search([
+			'query' => 'email:\'harshu.nk62@gmail.com\'',
+		]);
+
+		if (count($customers->data) == 0) {
+			$customer = $stripe->customers->create([
+				'email' => 'harshu.nk62@gmail.com',
+			]);
+		} else {
+			$customer = $customers->data[0];
+		}
+
+		foreach($cards as $card){
+			$expiry = explode('/',$card['card_expiry']);
+			$amount = $card['card_amount'];
+			$card = [
+				'number' => str_replace(' ', '',$card['card_number']),
+				'exp_month' => $expiry[0],
+				'exp_year' => '20'.$expiry[1],
+				'cvc' => $card['card_csv']
+			];
+
+			$cardStripe = $stripe->paymentMethods->create([
+				'type' => 'card',
+				'card' => $card,
+			]);
+
+			$setupIntent = $stripe->setupIntents->create([
+				'payment_method_types' => ['card'],
+				'usage' => 'on_session',
+				'customer' => $customer->id
+			]);
+			
+	
+			$setupIntentConfirmations[] = array(
+					'amount' => $amount * 100,
+					'customer' => $customer->id,
+					'intent' => $stripe->setupIntents->confirm(
+						$setupIntent->id,
+						['payment_method' => $cardStripe]
+					)
+				);
+		}
+
+		foreach($setupIntentConfirmations as $key => $intention){
+			$setupIntentConfirmation = $intention['intent'];
+			// echo $intention['customer'];
+			if ($setupIntentConfirmation->status == 'succeeded') {
+				echo $setupIntentConfirmation->status . ' ' . $intention['amount'];
+	
+				$payment_intent = $stripe->paymentIntents->create([
+					"payment_method" => $setupIntentConfirmation->payment_method,
+					'customer' => $intention['customer'],
+					"amount" => $intention['amount'],
+					"currency" => "usd",
+					"confirmation_method" => "automatic",
+					"confirm" => true,
+					"setup_future_usage" => "on_session"
+				]);
+				echo $payment_intent->status;
+	
+				// Handle successful payment
+			} else {
+				print_r($setupIntentConfirmation);
+				// Handle failed payment
+			}
+		}
+        // echo json_encode($form['card']);
+        die();
+    }
 	/**
 	 * ######################
 	 * ###

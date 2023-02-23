@@ -37,6 +37,9 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         // https://site-url.com/wc-api/zg-stripe
         add_action('woocommerce_api_zg-stripe', array($this, 'webhook'));
         // add_action('wp_footer', array($this, 'append_spinner'));
+        
+        // add_action("wp_ajax_ajaxify_cards", array($this, "ajaxify_cards"));
+        // add_action("wp_ajax_nopriv_ajaxify_cards", array($this, "ajaxify_cards"));
     }
 
     public function append_spinner()
@@ -185,11 +188,11 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                     </div>
                     <div class="form-row form-row-first">
                         <label>Expiry Date</label>
-                        <input id="card_expdate" data-name="card_expiry" name="card[1][card_expiry]" type="text" autocomplete="off" placeholder="MM / YY">
+                        <input class="card_expdate" maxlength="5" data-name="card_expiry" name="card[1][card_expiry]" type="text" autocomplete="off" placeholder="MM / YY">
                     </div>
                     <div class="form-row form-row-last">
                         <label>Cvv</label>
-                        <input id="card_cvv" type="password" data-name="card_csv" name="card[1][card_csv]" autocomplete="off" placeholder="CVC">
+                        <input class="card_cvv" type="password" data-name="card_csv" name="card[1][card_csv]" autocomplete="off" placeholder="CVC">
                     </div>
                     <div class="clear"></div>
 
@@ -219,6 +222,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
                         </li>
                     </ul>
+                    <input type="hidden" id="zg-nonce" value="<?php echo wp_create_nonce("zg_cards_nonce") ?>"/>
                 </div>
             </div>
         </div>
@@ -227,6 +231,15 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
         echo '<div class="clear"></div></fieldset>';
     }
+
+    // public function ajaxify_cards()
+    // {
+    //     // if ( !wp_verify_nonce( $_REQUEST['nonce'], "zg_cards_nonce")) {
+    //     //     exit("Woof Woof Woof");
+    //     // } 
+    //     echo 'OK';
+    //     die();
+    // }
 
     public function payment_scripts()
     {
@@ -244,12 +257,14 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
             return;
         }
         wp_enqueue_script('zg-number-spinner-picker-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/spinner_picker.js', array('jquery'), '1.0', true);
+        wp_enqueue_script('zg-number-card-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.card.js', array('jquery'), '1.0', true);
         // wp_enqueue_script('zg-jquery-steps-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.steps.min.js', array('jquery'), '1.0', true);
         wp_register_script('zg-stripe-gateway', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/zg-stripe.js', array('jquery', 'zg-number-spinner-picker-js'));
         wp_localize_script('zg-stripe-gateway', 'zg', array(
             'publishableKey' => $this->publishable_key,
             'orderTotal' => WC()->cart->total,
-            'currency' => get_woocommerce_currency_symbol()
+            'currency' => get_woocommerce_currency_symbol(),
+            'ajaxurl' => admin_url( 'admin-ajax.php' )
         ));
         wp_enqueue_script('zg-stripe-gateway');
         wp_enqueue_style('zg-stripe-css', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/css/zg-stripe.css', array(), '1.0.0');
