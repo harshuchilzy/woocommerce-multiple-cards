@@ -37,7 +37,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         // https://site-url.com/wc-api/zg-stripe
         add_action('woocommerce_api_zg-stripe', array($this, 'webhook'));
         // add_action('wp_footer', array($this, 'append_spinner'));
-        
+
         // add_action("wp_ajax_ajaxify_cards", array($this, "ajaxify_cards"));
         // add_action("wp_ajax_nopriv_ajaxify_cards", array($this, "ajaxify_cards"));
     }
@@ -119,7 +119,9 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         echo '<fieldset id="wc-' . esc_attr($this->id) . '-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">';
 
         // Add this action hook if you want your custom payment gateway to support it
-        do_action('woocommerce_credit_card_form_start', $this->id); ?>
+        do_action('woocommerce_credit_card_form_start', $this->id); 
+        $cartTotal = WC()->cart->total;
+        ?>
         <script src="https://js.stripe.com/v3/"></script>
         <div class="zg-stripe-main-wrapper">
 
@@ -129,7 +131,22 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 <!-- Wheel picker -->
                 <div id="spinner-here">
                     <p>Split your payment into how many cards?</p>
-                    <canvas id="cards-spinner" height="50px" width="100%"></canvas>
+                    <input type="number" name="card_Count" class="form-control card_count" value="1" min="1" max="10"/>
+                    <!-- <div id="card-count" class="number-swiper" data-value="1">
+                        <ol class="number-swiper-column number-swiper-column-1" data-column="1" data-value="1">
+                            <li id="center-1" class="number-swiper-active-number">1</li>
+                            <li>2</li>
+                            <li>3</li>
+                            <li>4</li>
+                            <li>5</li>
+                            <li>6</li>
+                            <li>7</li>
+                            <li>8</li>
+                            <li>9</li>
+                        </ol>
+                        <input class="number-swiper-value" type="hidden" min="0" max="10" value="1">
+                    </div> -->
+                    <!-- <canvas id="cards-spinner" height="50px" width="100%"></canvas> -->
                     <div class="button-wrap justify-center">
                         <button class="red-btn next-btn" type="button">Next</button>
                     </div>
@@ -150,15 +167,20 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                         <div class="input-group-prepend">
                             <span class="input-group-text"><?php echo get_woocommerce_currency_symbol(); ?></span>
                         </div>
-                        <input type="number" data-name="card_amount" name="card[1][card_amount]" class="form-control card-val" step="0.01" placeholder="100">
+                        <input type="number" data-name="card_amount" name="card[1][card_amount]" class="form-control card-val" step="0.01" placeholder="100" max="<?php echo $cartTotal ?>">
                     </div>
                     <div class="predefine-value-wrapper">
                         <?php
-                        $cartTotal = WC()->cart->total;
-                        for ($i = $cartTotal / 4; $i <= $cartTotal; $i += $cartTotal / 4) {
-                            $value = number_format(round($i - 1, 0, PHP_ROUND_HALF_DOWN), 2);
-                            echo "<button class='pink-btn assign-value' value='{$value}' type='button'>" . wc_price($value) . "</button>";
-                        }
+                        
+                        // for ($i = $cartTotal / 4; $i <= $cartTotal; $i += $cartTotal / 4) {
+                        //     $value = number_format(round($i - 1, 0, PHP_ROUND_HALF_DOWN), 2);
+                        //     echo "<button class='pink-btn assign-value' value='{$value}' type='button'>" . wc_price($value) . "</button>";
+                        // }
+                        echo "<button class='pink-btn assign-value' value='50' type='button' ". ($cartTotal <= 50 ? 'disabled' : '') .">" . wc_price(50) . "</button>";
+                        echo "<button class='pink-btn assign-value' value='100' type='button' ". ($cartTotal <= 100 ? 'disabled' : '') .">" . wc_price(100) . "</button>";
+                        echo "<button class='pink-btn assign-value' value='250' type='button' ". ($cartTotal <= 250 ? 'disabled' : '') .">" . wc_price(250) . "</button>";
+                        echo "<button class='pink-btn assign-value' value='500' type='button' ". ($cartTotal <= 500 ? 'disabled' : '') .">" . wc_price(500) . "</button>";
+
                         ?>
                     </div>
 
@@ -169,7 +191,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 </div>
                 <div class="button-wrap">
                     <button class="red-btn prev-btn" type="button"><i class="fas fa-chevron-left"></i> Back</button>
-                    <button class="red-btn next-btn" type="button">Next</button>
+                    <button class="red-btn next-btn" type="button" disabled>Next</button>
                 </div>
             </div>
 
@@ -217,12 +239,8 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 </div>
                 <h4>These cards will charged the respective amounts. tap any row to edit card or amount</h4>
                 <div class="step-inner">
-                    <ul class="cards-list">
-                        <li>
-
-                        </li>
-                    </ul>
-                    <input type="hidden" id="zg-nonce" value="<?php echo wp_create_nonce("zg_cards_nonce") ?>"/>
+                    <ul class="cards-list"></ul>
+                    <input type="hidden" id="zg-nonce" value="<?php echo wp_create_nonce("zg_cards_nonce") ?>" />
                 </div>
             </div>
         </div>
@@ -256,18 +274,21 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         if (empty($this->private_key) || empty($this->publishable_key)) {
             return;
         }
-        wp_enqueue_script('zg-number-spinner-picker-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/spinner_picker.js', array('jquery'), '1.0', true);
+        wp_enqueue_script('zg-number-swiper-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/number-swiper.js', array('jquery'), '1.0', true);
+
+        // wp_enqueue_script('zg-number-spinner-picker-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/spinner_picker.js', array('jquery'), '1.0', true);
         wp_enqueue_script('zg-number-card-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.card.js', array('jquery'), '1.0', true);
         // wp_enqueue_script('zg-jquery-steps-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.steps.min.js', array('jquery'), '1.0', true);
-        wp_register_script('zg-stripe-gateway', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/zg-stripe.js', array('jquery', 'zg-number-spinner-picker-js'));
+        wp_register_script('zg-stripe-gateway', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/zg-stripe.js', array('jquery'));
         wp_localize_script('zg-stripe-gateway', 'zg', array(
             'publishableKey' => $this->publishable_key,
             'orderTotal' => WC()->cart->total,
             'currency' => get_woocommerce_currency_symbol(),
-            'ajaxurl' => admin_url( 'admin-ajax.php' )
+            'ajaxurl' => admin_url('admin-ajax.php')
         ));
         wp_enqueue_script('zg-stripe-gateway');
         wp_enqueue_style('zg-stripe-css', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/css/zg-stripe.css', array(), '1.0.0');
+        wp_enqueue_style('zg-number-swiper-css', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/css/number-swiper.css', array(), '1.0.0');
     }
 
     public function validate_fields()

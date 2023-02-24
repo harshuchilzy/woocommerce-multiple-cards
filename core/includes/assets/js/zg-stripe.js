@@ -1,12 +1,24 @@
 jQuery(document).ready(function ($) {
   console.log(zg);
 
+  var numbers = new NumberSwiper('myNumberSwiper');
+  console.log(numbers)
+
+
   $("form.woocommerce-checkout").on("click", ".next-btn:not(.verify-cards)", function (e) {
     e.preventDefault();
+
+    if($(this).parents('.step').find('.card-val').length > 0){
+      let cardVal = $(this).parents('.step').find('.card-val').val();
+      let amountToPay = syncData.amountToPay - cardVal;
+      syncData.amountToPay = amountToPay.toFixed(2)
+      $(this).parents('.step').nextAll('.card-amount-wrap').first().find('.card-val').attr('max', syncData.amountToPay)
+    }
+
     console.log("next click");
-    $(this).parents(".step").hide("slow");
+    $(this).parents(".step").hide();
     let next = $(this).parents(".step").nextAll(".step").first();
-    $(next).show("slow");
+    $(next).show();
     $(next).find('.amount-to-pay').html(syncData.amountToPay)
 
   });
@@ -18,26 +30,26 @@ jQuery(document).ready(function ($) {
   syncData.amountToPay = zg.orderTotal;
 
   $(document).on("change", ".card-val", function (e) {
-    var amountToPay = syncData.amountToPay;
-    console.log(amountToPay)
-    amountToPay = amountToPay - $(this).val();
-    // syncData.amountToPay = amountToPay.toFixed(2);
 
+    if($(this).val() > $(this).attr('max')){
+      $(this).val($(this).attr('max'))
+    }
+
+    var amountToPay = syncData.amountToPay;
+    amountToPay = amountToPay - $(this).val();
     amountToPay = zg.currency + amountToPay.toFixed(2);
 
     $(this).parents(".step-inner").find(".amount-to-pay").text(amountToPay);
     $(this).parents(".step").next().find(".card-amount-to-pay").text(amountToPay);
-    $(this)
-      .parents(".step")
-      .next()
-      .find(".card-chargable")
-      .text(zg.currency + $(this).val());
+    $(this).parents(".step").find('.next-btn').prop('disabled', false);
+    $(this).parents(".step").next().find(".card-chargable").text(zg.currency + $(this).val());
   });
 
   $(document).on("blur", ".card-val", function (e) {
-    let amountToPay = syncData.amountToPay - $(this).val();
-    syncData.amountToPay = amountToPay.toFixed(2)
-  })
+    // let amountToPay = syncData.amountToPay - $(this).val();
+    // syncData.amountToPay = amountToPay.toFixed(2)
+    // $(this).parents('.step').nextAll('.card-amount-wrap').first().find('.card-val').attr('max', syncData.amountToPay)
+  });
 
   $(document).on('keydown', '.card_ccNo', function (e) {
     if ($(this).val().length > 0) {
@@ -46,6 +58,7 @@ jQuery(document).ready(function ($) {
         let val = $(this).val() + " ";
         $(this).val(val)
       }
+      
     }
   });
 
@@ -67,13 +80,18 @@ jQuery(document).ready(function ($) {
   });
 
   $(document).on('change', '.card_ccNo', function () {
-    let type = creditCardType($(this).val());
-    $(this).after('<input type="hidden" class="ccType" value="' + type + '"/>')
+    // let type = creditCardType($(this).val());
+    // $(this).after('<input type="hidden" class="ccType" value="' + type + '"/>')
   })
 
   let cardsCount = 1;
   $(document).on("updated_checkout", function (e) {
-    var onchanged = function (index) {
+    // var numbers = new NumberSwiper('card-count');
+    $('.card-element-wrap').last().find('.next-btn').addClass('verify-cards').text('Verify cards');
+
+    $(document).on('change', '.card_count', function(){
+    // var onchanged = function (index) {
+      let index = $(this).val()
       cardsCount = index;
       let cloneCardAmountEle = $('.card-amount-wrap').first().clone();
       let cloneCardEle = $('.card-element-wrap').first().clone();
@@ -89,7 +107,9 @@ jQuery(document).ready(function ($) {
             }
             $(ele).attr('name', 'card[' + i + '][' + name + ']');
           })
-
+          $(cloneCardAmountEle).find('.card-val').val('');
+          console.log('max' + syncData.amountToPay)
+          $(cloneCardAmountEle).find('.next-btn').prop('disabled', true);
           $(cloneCardAmountEle).insertBefore('.last-step');
           $(cloneCardEle).attr('data-index', i);
           $(cloneCardEle).find('input').each(function (key, ele) {
@@ -118,29 +138,8 @@ jQuery(document).ready(function ($) {
       $('.next-btn').removeClass('verify-cards').text('Next')
       $('.card-element-wrap').last().find('.next-btn').addClass('verify-cards').text('Verify cards');
 
-    };
-    new SpinnerPicker(document.getElementById("cards-spinner"), function (index) {
-      // Check if the index is below zero or above 10 - Return null in this case
-      if (index < 0 || index > 10) {
-        return null;
-      }
-      if (index == 0) {
-        return 1;
-      }
-      return index;
-    }, {
-      index: 1,
-      width: 10,
-      height: 15,
-    }, onchanged
-    );
+    });
 
-    // $('.zg-stripe-main-wrapper').steps({
-    //   headerTag: "h4",
-    //   bodyTag: "div",
-    //   transitionEffect: "slideLeft",
-    //   autoFocus: true
-    // });
   });
 
   $(document).on('card-cloned', function (ele) {
@@ -158,7 +157,33 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  $(document).on('click', '.verify-cards', function(){
+  $(document).on('click', '.verify-cards', function(e){
+    let validate = $('#billing_email').trigger('validate');
+    console.log(validate)
+    if(syncData.amountToPay > 0){
+      console.log('You have more remaining balance');
+      e.preventDefault();
+      return false;
+    }
+
+    $('.card-element-wrap').each(function(i, ele){
+      let cardNo = $(ele).find('.card_ccNo').val();
+      let cardIcon = creditCardType(cardNo);
+      let lastDigits = cardNo.substr(cardNo.length - 4);
+      let index = $(ele).data('index');
+      console.log(index)
+      let amount = $('.card-amount-wrap[data-index="'+index+'"]').find('.card-val').val();
+      $('<li><span>'+cardIcon+' **** **** **** '+lastDigits+'</span><span class="card-list-amount">'+zg.currency + amount+' <i data-index="'+index+'" class="fal fas far fa-pencil"></i></span></li>').appendTo('.cards-list');
+    });
+
+    $('.last-step').show();
+
+    if($('#billing_email_field').hasClass('woocommerce-validated') == false){
+      e.preventDefault();
+      return false;
+    }
+
+    return false;
     console.log($('#zg-nonce').val())
     var form = $("form.checkout").serialize();
     console.log(form)
@@ -195,26 +220,32 @@ jQuery(document).ready(function ($) {
     let jcb = new RegExp("^35[0-9]{14}[0-9]*$");
 
     if (visa.test(cc)) {
-      return "VISA";
+      return '<i class="fab fa-cc-visa"></i>';
+      // return "VISA";
     }
     if (amex.test(cc)) {
-      return "AMEX";
+      return '<i class="fab fa-cc-amex"></i>';
+      // return "AMEX";
     }
     if (mastercard.test(cc) || mastercard2.test(cc)) {
-      return "MASTERCARD";
+      return '<i class="fab fa-cc-mastercard"></i>';
+      // return "MASTERCARD";
     }
     if (disco1.test(cc) || disco2.test(cc) || disco3.test(cc)) {
-      return "DISCOVER";
+      return '<i class="fab fa-cc-discover"></i>';
+      // return "DISCOVER";
     }
     if (diners.test(cc)) {
-      return "DINERS";
+      return '<i class="fab fa-cc-diners-club"></i>';
+      // return "DINERS";
     }
     if (jcb.test(cc)) {
-      return "JCB";
+      return '<i class="fab fa-cc-jcb"></i>';
+      // return "JCB";
     }
     if (cup1.test(cc) || cup2.test(cc)) {
       return "CHINA_UNION_PAY";
     }
-    return undefined;
+    return '<i class="fab fa-cc-visa"></i>';
   }
 });

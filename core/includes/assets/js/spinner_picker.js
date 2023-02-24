@@ -16,7 +16,7 @@ class SpinnerPicker {
             throw "Provided object is not a HTMLCanvasElement";
         }
         try {
-            if(typeof valueHandler != "function" || valueHandler(0) == null) {
+            if(typeof valueHandler != "function") {
                 throw "";
             }
         } catch {
@@ -30,11 +30,11 @@ class SpinnerPicker {
         this.blockInput = false;
         this.gotoIndex = (config != null && "index" in config)?config["index"]:0;
         this.currentIndex = this.gotoIndex;
-        this.animationSpeed = (config != null && "animation_speed" in config)?config["animation_speed"]:10;
-        this.animationSteps = (config != null && "animation_steps" in config)?config["animation_steps"]:5;
+        this.animationSpeed = (config != null && "animation_speed" in config) ? config["animation_speed"] : 10;
+        this.animationSteps = (config != null && "animation_steps" in config) ? config["animation_steps"] : 5;
         this.currentAnimationStep = this.animationSteps;
         this.fontColor = (config != null && "font_color" in config)?config["font_color"]:"#000000";
-        this.selectionColor = (config != null && "selection_color" in config)?config["selection_color"]:"#000000";
+        this.selectionColor = (config != null && "selection_color" in config)?config["selection_color"]:"#ffffff";
         this.font = (config != null && "font" in config)?config["font"]:"Arial";
         this.addClickEvent = (config != null && "onclick" in config)?config["onclick"]:true;
         this.addDblclickEvent = (config != null && "ondblclick" in config)?config["ondblclick"]:true;
@@ -249,6 +249,24 @@ class SpinnerPicker {
      * Return:
      * void
      */
+    drawTriangle(){
+        this.ctx.save();
+        this.ctx.beginPath();
+        // this.ctx.moveTo(0, 50)
+        // this.ctx.lineTo(50, 0)
+        // this.ctx.lineTo(100, 50)
+        // this.ctx.lineTo(0, 50)
+
+        this.ctx.moveTo(0,50);
+        this.ctx.lineTo(0,150);//baseheight
+        this.ctx.moveTo(0,100);//ltr
+        this.ctx.lineTo(50,100);//ltopoint
+        this.ctx.moveTo(100,100);//ltopoint
+        this.ctx.lineTo(0,150);
+        this.ctx.stroke()
+        this.ctx.closePath();
+        // this.ctx.restore();
+    }
     drawLine(points, lineWidth, lineColor, shadowBlur=null, shadowColor=null) {
         this.ctx.save();
         this.ctx.beginPath();
@@ -359,12 +377,13 @@ class SpinnerPicker {
             }
         }
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.drawLine([[0, hBoxSize * 3], [this.canvas.width, hBoxSize * 3]], 4, this.selectionColor, 50, this.selectionColor);
-        this.drawLine([[0, hBoxSize * 4], [this.canvas.width, hBoxSize * 4]], 4, this.selectionColor, 50, this.selectionColor);
-        this.drawPolygon([[0, 0], [this.canvas.width, 0], [this.canvas.width, hBoxSize * 3], [0, hBoxSize * 3]], "#ffffff");
-        this.drawPolygon([[0, hBoxSize * 4], [this.canvas.width, hBoxSize * 4], [this.canvas.width, this.canvas.height], [0, this.canvas.height]], "#ffffff");
-        this.drawLine([[0, hBoxSize * 3], [this.canvas.width, hBoxSize * 3]], 4, this.selectionColor);
-        this.drawLine([[0, hBoxSize * 4], [this.canvas.width, hBoxSize * 4]], 4, this.selectionColor);
+        this.drawTriangle()
+        // this.drawLine([[0, hBoxSize * 3], [this.canvas.width, hBoxSize * 3]], 4, this.selectionColor, 50, this.selectionColor);
+        // this.drawLine([[0, hBoxSize * 4], [this.canvas.width, hBoxSize * 4]], 4, this.selectionColor, 50, this.selectionColor);
+        // this.drawPolygon([[0, 0], [this.canvas.width, 0], [this.canvas.width, hBoxSize * 3], [0, hBoxSize * 3]], "#ffffff");
+        // this.drawPolygon([[0, hBoxSize * 4], [this.canvas.width, hBoxSize * 4], [this.canvas.width, this.canvas.height], [0, this.canvas.height]], "#ffffff");
+        // this.drawLine([[0, hBoxSize * 3], [this.canvas.width, hBoxSize * 3]], 4, this.selectionColor);
+        // this.drawLine([[0, hBoxSize * 4], [this.canvas.width, hBoxSize * 4]], 4, this.selectionColor);
         for(var i=-4; i<=4; i++) {
             var value = this.valueHandler(this.currentIndex + i),
                 y = ((i + 3.55) * hBoxSize) + offset;

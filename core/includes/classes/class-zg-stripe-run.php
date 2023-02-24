@@ -25,7 +25,7 @@ class Zg_Stripe_Run
 	function __construct()
 	{
 		$this->add_hooks();
-		// $this->test_payment();
+		$this->test_payment();
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Zg_Stripe_Run
 
 		if (count($customers->data) == 0) {
 			$customer = $stripe->customers->create([
-				'email' => 'harshu.nk62@gmail.com',
+				'email' => $email,
 			]);
 		} else {
 			$customer = $customers->data[0];
@@ -198,7 +198,7 @@ class Zg_Stripe_Run
 		];
 
 		$card2 = [
-			'number' => '5555555555554444',
+			'number' => '4000000000009995',
 			'exp_month' => '12',
 			'exp_year' => '2023',
 			'cvc' => '123'
@@ -223,7 +223,7 @@ class Zg_Stripe_Run
 			$customer = $customers->data[0];
 		}
 
-		print_r($customer);
+		// print_r($customer);
 
 		$card1ST = $stripe->paymentMethods->create([
 			'type' => 'card',
@@ -262,19 +262,20 @@ class Zg_Stripe_Run
 			if ($setupIntentConfirmation->status == 'succeeded') {
 				echo $setupIntentConfirmation->status;
 	
-				$payment_intent = $stripe->paymentIntents->create([
-					"payment_method" => $setupIntentConfirmation->payment_method,
-					'customer' => $customer->id,
-					"amount" => $amount,
-					"currency" => "usd",
-					"confirmation_method" => "automatic",
-					"confirm" => true,
-					"setup_future_usage" => "on_session"
-				]);
-				echo $payment_intent->status;
+				// $payment_intent = $stripe->paymentIntents->create([
+				// 	"payment_method" => $setupIntentConfirmation->payment_method,
+				// 	'customer' => $customer->id,
+				// 	"amount" => $amount,
+				// 	"currency" => "usd",
+				// 	"confirmation_method" => "automatic",
+				// 	"confirm" => true,
+				// 	"setup_future_usage" => "on_session"
+				// ]);
+				// echo $payment_intent->status;
 	
 				// Handle successful payment
 			} else {
+				echo 'ERROR';
 				print_r($setupIntentConfirmation);
 				// Handle failed payment
 			}

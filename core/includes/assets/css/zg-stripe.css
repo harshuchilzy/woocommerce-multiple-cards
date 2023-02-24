@@ -96,12 +96,16 @@ button.pink-btn:hover{
     justify-content: space-between;
     margin-top: 40px;
     margin-bottom: 20px;
-    padding: 10px 0;
-    border-top: solid 1px #ccc;
-    border-bottom: solid 1px #ccc;
+    padding: 10px;
+    border: solid 1px #ccc;
+    border-radius: 7px;
     color: #000;
 }
-
+.step-inner input {
+  border: solid 1px #ccc;
+  border-radius: 5px;
+  box-shadow: none;
+}
 span.amount-to-pay, span.card-amount-to-pay {
     font-weight: bold;
 }
@@ -134,4 +138,28 @@ button.next-btn:hover{
 }
 .justify-center{
     justify-content: center;
+}
+
+input.form-control.card_count {
+  margin: 10px auto 15px;
+  border-radius: 5px;
+}
+
+div#spinner-here {
+  text-align: center;
+}
+
+ul.cards-list {
+  margin: 0;
+}
+
+ul.cards-list > li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f1f1f1;
+  border: solid 1px #e1e1e1;
+  padding: 5px !important;
+  border-radius: 5px;
+  font-size: 16px;
 }

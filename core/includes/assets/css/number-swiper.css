@@ -1,0 +1,51 @@
+.number-swiper{
+  display:flex;
+  font-size: 12vmin;
+  justify-content: center;
+  /* transition: 1s; */
+  background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0));
+  align-items: center;
+}
+/*
+.number-swiper:active .number-swiper-column, .number-swiper:hover .number-swiper-column, .number-swiper:focus-within .number-swiper-column {
+  box-shadow: 0 0 .1em .1em rgba(0, 0, 0, 0.5) inset;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.5));
+  transition: 1s;
+} */
+
+.number-swiper-column::-webkit-scrollbar { display:none }
+
+.number-swiper-column{
+  overflow: scroll;
+  scrollbar-width: none;
+  height: 232px;
+  list-style: none;
+  padding: 0;
+  margin: auto 0;
+  scroll-snap-type: y mandatory;
+}
+
+.number-swiper-column li{
+  scroll-snap-align: center;
+  height: 1em;
+  margin: .25em .03em .3em .1em;
+}
+.number-swiper {
+  position: relative;
+}
+ol.number-swiper-column:after {
+  content: ' ';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: rgb(255,255,255);
+  /* background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,1) 100%); */
+  background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 3%, rgba(255,255,255,0) 70%, rgba(255,255,255,1) 100%);
+  z-index: 99;
+}
+span.card-list-amount {
+  font-weight: bold;
+}
