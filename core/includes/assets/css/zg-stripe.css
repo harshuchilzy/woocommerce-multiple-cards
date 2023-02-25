@@ -74,10 +74,13 @@ input.form-control.card-val {
     font-size: 18px;
     color: #000;
     font-style: italic;
+    max-width: 100px;
 }
 .predefine-value-wrapper{
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    /* justify-content: space-between; */
+    justify-content: center;
     gap: 10px;
     margin: 10px auto;
 }
@@ -130,7 +133,8 @@ button.next-btn{
     border-radius: 5px;
     transition: all 0.4s ease-in-out;
     color: #fff;
-    padding: 5px 20px;
+    padding: 5px 8px;
+    min-width: 40%;
 }
 button.next-btn:hover{
     background-color: #faebe7;
@@ -153,13 +157,18 @@ ul.cards-list {
   margin: 0;
 }
 
-ul.cards-list > li {
+ul.cards-list > li > div {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f1f1f1;
-  border: solid 1px #e1e1e1;
-  padding: 5px !important;
-  border-radius: 5px;
-  font-size: 16px;
+  
+}
+ul.cards-list > li{
+  margin-bottom: 10px;
+}
+ul.cards-list > li.validated > div{
+  background-color: #c8e5ce;
+}
+.text-error{
+  color: #bc3017;
 }

@@ -230,6 +230,32 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 </div>
             </div>
 
+            <!-- <div class="step verify-step" style="display: none">
+                <div>
+                    <span class="text-right w-100 inline-block">7 of 8</span>
+                    <div class="bar-wrap">
+                        <div class="bar w-90"></div>
+                    </div>
+                </div>
+                <div class="step-inner">
+                    <div class="zg-card-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="0.3" stroke="#bc3017" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-center">Please use another card</p>
+                    </div>
+                    <div class="zg-card-success">
+                        <div style="width: 150px; margin: 0 auto;padding: 45px; border-radius: 100%; border: solid 2px #44df1e">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#44df1e" class="w-2 h-2" style="height: 50px; width: 58px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                        </div>
+                        <p class="text-center">Verifying Balance on cards</p>
+                    </div>
+    
+                </div>
+            </div> -->
+
             <div class="step last-step" style="display: none">
                 <div>
                     <span class="text-right w-100 inline-block">2 of 8</span>
@@ -237,7 +263,8 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                         <div class="bar w-90"></div>
                     </div>
                 </div>
-                <h4>These cards will charged the respective amounts. tap any row to edit card or amount</h4>
+                <h4 id="zg-card-default-note">These cards will charged the respective amounts. tap any row to edit card or amount</h4>
+                <h4 id="zg-card-notices"></h4>
                 <div class="step-inner">
                     <ul class="cards-list"></ul>
                     <input type="hidden" id="zg-nonce" value="<?php echo wp_create_nonce("zg_cards_nonce") ?>" />

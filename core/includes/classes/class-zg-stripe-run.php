@@ -25,7 +25,7 @@ class Zg_Stripe_Run
 	function __construct()
 	{
 		$this->add_hooks();
-		$this->test_payment();
+		// $this->test_payment();
 	}
 
 	/**
@@ -64,15 +64,14 @@ class Zg_Stripe_Run
 
 		$options = get_option( 'woocommerce_zg-stripe_settings' );
 		if($options['testmode'] == 'yes'){
-			$publicKey = $options['test_private_key'];
+			$privateKey = $options['test_private_key'];
 		}else{
-			$publicKey = $options['private_key'];
+			$privateKey = $options['private_key'];
 		}
-		// echo $options['test_publishable_key'];
-		$stripe = new \Stripe\StripeClient($publicKey);
 
+		$stripe = new \Stripe\StripeClient($privateKey);
 		$customers = $stripe->customers->search([
-			'query' => 'email:\'harshu.nk62@gmail.com\'',
+			'query' => 'email:\''.$email.'\'',
 		]);
 
 		if (count($customers->data) == 0) {
@@ -83,6 +82,8 @@ class Zg_Stripe_Run
 			$customer = $customers->data[0];
 		}
 
+		$data = [];
+		// $success = [];
 		foreach($cards as $card){
 			$expiry = explode('/',$card['card_expiry']);
 			$amount = $card['card_amount'];
@@ -93,10 +94,29 @@ class Zg_Stripe_Run
 				'cvc' => $card['card_csv']
 			];
 
-			$cardStripe = $stripe->paymentMethods->create([
-				'type' => 'card',
-				'card' => $card,
-			]);
+			try{
+				$cardStripe = $stripe->paymentMethods->create([
+					'type' => 'card',
+					'card' => $card,
+				]);
+				$data[] = array(
+					'type' => 'success',
+					'dataTtype' => $cardStripe->type,
+					'card' => $cardStripe->card->last4
+				);
+			} catch(\Stripe\Exception\CardException $e) {
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $card['number']
+				);
+				// echo json_encode($errors);
+				// wp_die();
+				continue;
+				// die();
+			}
 
 			$setupIntent = $stripe->setupIntents->create([
 				'payment_method_types' => ['card'],
@@ -104,42 +124,134 @@ class Zg_Stripe_Run
 				'customer' => $customer->id
 			]);
 			
-	
-			$setupIntentConfirmations[] = array(
-					'amount' => $amount * 100,
-					'customer' => $customer->id,
-					'intent' => $stripe->setupIntents->confirm(
-						$setupIntent->id,
-						['payment_method' => $cardStripe]
-					)
+			try{
+				$intent = $stripe->setupIntents->confirm(
+					$setupIntent->id,
+					['payment_method' => $cardStripe]
 				);
+			} catch(\Stripe\Exception\CardException $e) {
+				// echo '<pre>';print_r($e->getError()); echo '</pre>';
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $e->getError()->payment_method->card->last4
+				);
+				// echo json_encode($errors);
+				// wp_die();
+				continue;
+				// continue;
+				// die();
+			}catch (\Stripe\Exception\RateLimitException $e) {
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $e->getError()->payment_method->card->last4
+				);
+				// die();
+				continue;
+
+			} catch (\Stripe\Exception\InvalidRequestException $e) {
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $e->getError()->payment_method->card->last4
+				);
+				continue;
+				// die();
+			} catch (\Stripe\Exception\AuthenticationException $e) {
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $e->getError()->payment_method->card->last4
+				);
+				continue;
+				// die();
+			} catch (\Stripe\Exception\ApiConnectionException $e) {
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $e->getError()->payment_method->card->last4
+				);
+				// continue;
+				// die();
+			} catch (\Stripe\Exception\ApiErrorException $e) {
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $e->getError()->payment_method->card->last4
+				);
+				continue;
+				// die();
+			} catch (Exception $e) {
+				$data[] = array(
+					'type' => 'error',
+					'status' => 402,
+					'code' => $e->getError()->code,
+					'message' => $e->getError()->message,
+					'last4' => $e->getError()->payment_method->card->last4
+				);
+				continue;
+				// die();
+			}
+
+			$data[] = array(
+				'type' => 'setup_intention',
+				'amount' => $amount * 100,
+				'customer' => $customer->id,
+				'intent' => $intent
+			);
 		}
 
-		foreach($setupIntentConfirmations as $key => $intention){
-			$setupIntentConfirmation = $intention['intent'];
-			// echo $intention['customer'];
-			if ($setupIntentConfirmation->status == 'succeeded') {
-				echo $setupIntentConfirmation->status . ' ' . $intention['amount'];
+		// if(!empty($errors)){
+			echo wp_send_json_success( $data );
+		// }else{
+		// 	echo json_encode($setupIntentConfirmations);
+		// }
+
+		// foreach($setupIntentConfirmations as $key => $intention){
+		// 	if ($setupIntentConfirmation->status == 'succeeded') {
+		// 		$intentions 
+		// 	}
+		// }
+
+		// foreach($setupIntentConfirmations as $key => $intention){
+		// 	$setupIntentConfirmation = $intention['intent'];
+		// 	// echo $intention['customer'];
+		// 	if ($setupIntentConfirmation->status == 'succeeded') {
+		// 		echo $setupIntentConfirmation->status . ' ' . $intention['amount'];
 	
-				$payment_intent = $stripe->paymentIntents->create([
-					"payment_method" => $setupIntentConfirmation->payment_method,
-					'customer' => $intention['customer'],
-					"amount" => $intention['amount'],
-					"currency" => "usd",
-					"confirmation_method" => "automatic",
-					"confirm" => true,
-					"setup_future_usage" => "on_session"
-				]);
-				echo $payment_intent->status;
+		// 		$payment_intent = $stripe->paymentIntents->create([
+		// 			"payment_method" => $setupIntentConfirmation->payment_method,
+		// 			'customer' => $intention['customer'],
+		// 			"amount" => $intention['amount'],
+		// 			"currency" => "usd",
+		// 			"confirmation_method" => "automatic",
+		// 			"confirm" => true,
+		// 			"setup_future_usage" => "on_session"
+		// 		]);
+		// 		echo $payment_intent->status;
 	
-				// Handle successful payment
-			} else {
-				print_r($setupIntentConfirmation);
-				// Handle failed payment
-			}
-		}
+		// 		// Handle successful payment
+		// 	} else {
+		// 		print_r($setupIntentConfirmation);
+		// 		// Handle failed payment
+		// 	}
+		// }
+		
         // echo json_encode($form['card']);
-        die();
+        wp_die();
     }
 	/**
 	 * ######################
@@ -230,10 +342,22 @@ class Zg_Stripe_Run
 			'card' => $card1,
 		]);
 
+		try{
 		  $card2ST = $stripe->paymentMethods->create([
 			'type' => 'card',
 			'card' => $card2,
 		  ]);
+		} catch (Exception $e) {
+			// echo 'OOOOOO';
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card2
+			);
+			// echo '<pre>';print_r($e->getError()); echo '</pre>';
+			die();
+		}
 
 		$setupIntent = $stripe->setupIntents->create([
 			'payment_method_types' => ['card'],
@@ -247,16 +371,82 @@ class Zg_Stripe_Run
 			['payment_method' => $card1ST]
 		);
 
+		try {
 		$setupIntent2 = $stripe->setupIntents->create([
 			'payment_method_types' => ['card'],
 			'usage' => 'on_session',
 			'customer' => $customer->id
 		]);
-
 		$setupIntentConfirmations[1500] = $stripe->setupIntents->confirm(
 			$setupIntent2->id,
 			['payment_method' => $card2ST]
 		);
+		} catch(\Stripe\Exception\CardException $e) {
+			// echo '<pre>';print_r($e->getError()); echo '</pre>';
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $e->getError()->card
+			);
+			echo '<pre>';
+			print_r($e->getError()->payment_method->card->last4);
+			echo '</pre>';
+
+			die();
+		}catch (\Stripe\Exception\RateLimitException $e) {
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card2
+			);
+			die();
+		} catch (\Stripe\Exception\InvalidRequestException $e) {
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card2
+			);
+			die();
+		} catch (\Stripe\Exception\AuthenticationException $e) {
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card2
+			);
+			die();
+		} catch (\Stripe\Exception\ApiConnectionException $e) {
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card2
+			);
+			die();
+		} catch (\Stripe\Exception\ApiErrorException $e) {
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card2
+			);
+			die();
+		} catch (Exception $e) {
+			$errors[] = array(
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card2
+			);
+			die();
+		}
+
+		// if($setupIntent2){
+			
+		// }
 
 		foreach($setupIntentConfirmations as $amount => $setupIntentConfirmation){
 			if ($setupIntentConfirmation->status == 'succeeded') {

@@ -32,7 +32,7 @@ jQuery(document).ready(function ($) {
   $(document).on("change", ".card-val", function (e) {
 
     if($(this).val() > $(this).attr('max')){
-      $(this).val($(this).attr('max'))
+      // $(this).val($(this).attr('max'))
     }
 
     var amountToPay = syncData.amountToPay;
@@ -166,24 +166,28 @@ jQuery(document).ready(function ($) {
       return false;
     }
 
+    // verify-step
+    $('.cards-list > li').remove();
+
     $('.card-element-wrap').each(function(i, ele){
       let cardNo = $(ele).find('.card_ccNo').val();
       let cardIcon = creditCardType(cardNo);
-      let lastDigits = cardNo.substr(cardNo.length - 4);
+      let lastDigits = $.trim(cardNo.substr(cardNo.length - 5));
       let index = $(ele).data('index');
-      console.log(index)
       let amount = $('.card-amount-wrap[data-index="'+index+'"]').find('.card-val').val();
-      $('<li><span>'+cardIcon+' **** **** **** '+lastDigits+'</span><span class="card-list-amount">'+zg.currency + amount+' <i data-index="'+index+'" class="fal fas far fa-pencil"></i></span></li>').appendTo('.cards-list');
+      $('<li data-card="'+lastDigits+'"><div><span>'+cardIcon+' **** **** **** '+lastDigits+'</span><span class="card-list-amount">'+zg.currency + amount+' <i data-index="'+index+'" class="fal fas far fa-pencil"></i></span></div></li>').appendTo('.cards-list');
     });
 
-    $('.last-step').show();
 
     if($('#billing_email_field').hasClass('woocommerce-validated') == false){
       e.preventDefault();
       return false;
     }
 
-    return false;
+    $('.verify-step').show();
+
+
+    // return false;
     console.log($('#zg-nonce').val())
     var form = $("form.checkout").serialize();
     console.log(form)
@@ -193,12 +197,25 @@ jQuery(document).ready(function ($) {
       data : {action: "ajaxify_cards", form : form, nonce: $('#zg-nonce').val()},
       success: function(response) {
         console.log(response)
+        $('.last-step').show()
+        $.each(response.data, function(i, data){
+          console.log(data)
+          if(data.type == "success"){
+            $('li[data-card="'+data.card+'"]').addClass('validated');
+          }else if(data.type == 'error'){
+            let digits = $.trim(data.last4.substr(data.last4.length - 4));
+            $('li[data-card="'+digits+'"]').append('<p class="text-error">'+data.message+'</p>')
+          }
+        });
         //  if(response.type == "success") {
         //     jQuery("#like_counter").html(response.like_count);
         //  }
         //  else {
         //     alert("Your like could not be added");
         //  }
+      },
+      error: function(e){
+        console.log(e)
       }
    });
   })
