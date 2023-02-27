@@ -172,3 +172,11 @@ ul.cards-list > li.validated > div{
 .text-error{
   color: #bc3017;
 }
+p.text-center {
+  text-align: center;
+  margin: 10px auto !important;
+}
+
+.zg-card-processing, .zg-card-stat-note {
+  margin: 20px auto;
+}

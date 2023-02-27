@@ -4,6 +4,56 @@ jQuery(document).ready(function ($) {
   var numbers = new NumberSwiper('myNumberSwiper');
   console.log(numbers)
 
+  $(document).on('click', '.verify-card', function(e){
+    e.preventDefault();
+    let validate = $('#billing_email').trigger('validate');
+    if($('#billing_email_field').hasClass('woocommerce-validated') == false){
+      e.preventDefault();
+      return false;
+    }
+    let email = $('#billing_email').val();
+    let parent = $(this).parents('.step-inner');
+    let cardNo = $(parent).find('.card_ccNo').val();
+    let expiry = $(parent).find('.card_expdate').val();
+    let csv = $(parent).find('.card_cvv').val();
+    let amount = $(this).parents('.step').prev('.step').find('.card-val').val();
+    $(parent).find('.card-element').hide();
+    $(parent).find('.zg-card-processing').show();
+    $(parent).find('.process-elements').show();
+    $('.zg-card-stat-note').hide();
+    // let thisEle = $(parent).parents('.step').next();
+    $(parent).find('.verify-card').prop('disabled', true);
+    console.log('Amount ' + amount);
+    $.ajax({
+      method: 'POST',
+      url : zg.ajaxurl,
+      data : {
+        action: "create_setup_intention",
+        email: email,
+        cardNo : cardNo,
+        expiry: expiry,
+        csv: csv,
+        amount: amount,
+        nonce: $('#zg-nonce').val()
+      },
+      success: function(response) {
+        console.log(response)
+        $('.zg-card-processing').hide();
+        if(response.data.type == 'success'){
+          $(parent).find('.zg-card-success').show();
+          $(parent).find('.verify-card').addClass('next-btn').removeClass('verify-card').prop('disabled', false);;
+
+        }else{
+          $(parent).find('#error-msg').text(response.data.message)
+          $(parent).find('.zg-card-error').show();
+        }
+      },
+      error: function(e){
+        console.log(e)
+      }
+    });
+
+  });
 
   $("form.woocommerce-checkout").on("click", ".next-btn:not(.verify-cards)", function (e) {
     e.preventDefault();
@@ -21,6 +71,8 @@ jQuery(document).ready(function ($) {
     $(next).show();
     $(next).find('.amount-to-pay').html(syncData.amountToPay)
 
+    $('.list-cards').removeClass('list-cards');
+    $('.card-element-wrap').last().find('.next-btn').addClass('list-cards');
   });
 
   $(document).on("click", ".assign-value", function () {
@@ -136,8 +188,8 @@ jQuery(document).ready(function ($) {
       }
 
       $('.next-btn').removeClass('verify-cards').text('Next')
-      $('.card-element-wrap').last().find('.next-btn').addClass('verify-cards').text('Verify cards');
-
+      $('.list-cards').removeClass('list-cards');
+      $('.card-element-wrap').last().find('.next-btn').addClass('list-cards');
     });
 
   });

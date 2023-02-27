@@ -146,7 +146,6 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                         </ol>
                         <input class="number-swiper-value" type="hidden" min="0" max="10" value="1">
                     </div> -->
-                    <!-- <canvas id="cards-spinner" height="50px" width="100%"></canvas> -->
                     <div class="button-wrap justify-center">
                         <button class="red-btn next-btn" type="button">Next</button>
                     </div>
@@ -204,33 +203,58 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                 </div>
                 <h4>This card will be charged <b class="card-chargable">0</b></h4>
                 <div class="step-inner">
-                    <div class="card-element"><!--Stripe.js injects the Card Element--></div>
-                    <div class="form-row form-row-wide"><label>Card Number</label>
-                        <input class="card_ccNo" data-name="card_number" name="card[1][card_number]" type="text" autocomplete="off">
-                    </div>
-                    <div class="form-row form-row-first">
-                        <label>Expiry Date</label>
-                        <input class="card_expdate" maxlength="5" data-name="card_expiry" name="card[1][card_expiry]" type="text" autocomplete="off" placeholder="MM / YY">
-                    </div>
-                    <div class="form-row form-row-last">
-                        <label>Cvv</label>
-                        <input class="card_cvv" type="password" data-name="card_csv" name="card[1][card_csv]" autocomplete="off" placeholder="CVC">
-                    </div>
-                    <div class="clear"></div>
+                    <div class="card-element">
+                        <div class="form-row form-row-wide"><label>Card Number</label>
+                            <input class="card_ccNo" data-name="card_number" name="card[1][card_number]" type="text" autocomplete="off">
+                        </div>
+                        <div class="form-row form-row-first">
+                            <label>Expiry Date</label>
+                            <input class="card_expdate" maxlength="5" data-name="card_expiry" name="card[1][card_expiry]" type="text" autocomplete="off" placeholder="MM / YY">
+                        </div>
+                        <div class="form-row form-row-last">
+                            <label>Cvv</label>
+                            <input class="card_cvv" type="password" data-name="card_csv" name="card[1][card_csv]" autocomplete="off" placeholder="CVC">
+                        </div>
+                        <div class="clear"></div>
 
-                    <div class="amount-left-to-pay">
-                        <span>Amount left to pay</span>
-                        <span class="card-amount-to-pay"><?php echo wc_price(WC()->cart->total); ?></span>
+                        <div class="amount-left-to-pay">
+                            <span>Amount left to pay</span>
+                            <span class="card-amount-to-pay"><?php echo wc_price(WC()->cart->total); ?></span>
+                        </div>
                     </div>
+                    <div class="process-elements" style="display:none">
+                        <div class="zg-card-processing">
+                            <div style="width: 150px; margin: 0 auto;padding: 45px; border-radius: 100%; border: solid 2px #ccc">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#999" class="w-6 h-6" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                </svg>
+                            </div>
+                            <p class="text-center">Processing</p>
+                        </div>
 
+                        <div class="zg-card-error zg-card-stat-note" style="display:none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="0.3" stroke="#bc3017" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-center">Please use another card. <span id="error-msg"></span></p>
+                        </div>
+                        <div class="zg-card-success zg-card-stat-note" style="display:none">
+                            <div style="width: 150px; margin: 0 auto;padding: 45px; border-radius: 100%; border: solid 2px #44df1e">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#44df1e" class="w-2 h-2" style="height: 50px; width: 58px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                            </div>
+                            <p class="text-center">Verifying Balance on cards</p>
+                        </div>
+                    </div>
                     <div class="button-wrap">
                         <button class="red-btn prev-btn" type="button"><i class="fas fa-chevron-left"></i> Back</button>
-                        <button class="red-btn next-btn" type="button">Next</button>
+                        <button class="red-btn next-btnzz verify-card" type="button">Next</button>
                     </div>
                 </div>
             </div>
 
-            <!-- <div class="step verify-step" style="display: none">
+            <!-- <div class="step verify-step" style="display: nonez">
                 <div>
                     <span class="text-right w-100 inline-block">7 of 8</span>
                     <div class="bar-wrap">
@@ -238,13 +262,22 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                     </div>
                 </div>
                 <div class="step-inner">
-                    <div class="zg-card-error">
+                    <div class="zg-card-processing">
+                        <div style="width: 150px; margin: 0 auto;padding: 45px; border-radius: 100%; border: solid 2px #ccc">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#999" class="w-6 h-6" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                        </div>
+                        <p class="text-center">Processing</p>
+                    </div>
+
+                    <div class="zg-card-error zg-card-stat-note" style="display:none">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="0.3" stroke="#bc3017" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p class="text-center">Please use another card</p>
+                        <p class="text-center">Please use another card. <span id="error-msg"></span></p>
                     </div>
-                    <div class="zg-card-success">
+                    <div class="zg-card-success zg-card-stat-note" style="display:none">
                         <div style="width: 150px; margin: 0 auto;padding: 45px; border-radius: 100%; border: solid 2px #44df1e">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#44df1e" class="w-2 h-2" style="height: 50px; width: 58px;">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
@@ -252,7 +285,10 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                         </div>
                         <p class="text-center">Verifying Balance on cards</p>
                     </div>
-    
+                    <div class="button-wrap">
+                        <button class="red-btn prev-btn" type="button"><i class="fas fa-chevron-left"></i> Back</button>
+                        <button class="red-btn next-btn" type="button">Next</button>
+                    </div>
                 </div>
             </div> -->
 

@@ -51,6 +51,87 @@ class Zg_Stripe_Run
 		// add_filter( 'woocommerce_payment_gateways', array($this, 'zg_add_gateway_class') );
 		add_action("wp_ajax_ajaxify_cards", array($this, "ajaxify_cards"));
         add_action("wp_ajax_nopriv_ajaxify_cards", array($this, "ajaxify_cards"));
+
+		add_action("wp_ajax_create_setup_intention", array($this, "create_setup_intention"));
+        add_action("wp_ajax_nopriv_create_setup_intention", array($this, "create_setup_intention"));
+	}
+
+	public function create_setup_intention()
+	{
+		if ( !wp_verify_nonce( $_REQUEST['nonce'], "zg_cards_nonce")) {
+            exit("Woof Woof Woof");
+        }
+
+		$options = get_option( 'woocommerce_zg-stripe_settings' );
+		if($options['testmode'] == 'yes'){
+			$privateKey = $options['test_private_key'];
+		}else{
+			$privateKey = $options['private_key'];
+		}
+
+		$stripe = new \Stripe\StripeClient($privateKey);
+		$email = $_POST['email'];
+		$customers = $stripe->customers->search([
+			'query' => 'email:\''.$email.'\'',
+		]);
+
+		if (count($customers->data) == 0) {
+			$customer = $stripe->customers->create([
+				'email' => $email,
+			]);
+		} else {
+			$customer = $customers->data[0];
+		}
+
+		$expiry = explode('/',$_POST['expiry']);
+
+		$card = [
+			'number' => str_replace(' ', '',$_POST['cardNo']),
+			'exp_month' => $expiry[0],
+			'exp_year' => '20'.$expiry[1],
+			'cvc' => $_POST['csv']
+		];
+
+		try{
+			$cardStripe = $stripe->paymentMethods->create([
+				'type' => 'card',
+				'card' => $card,
+			]);
+
+			$setupIntent = $stripe->setupIntents->create([
+				'payment_method_types' => ['card'],
+				'usage' => 'on_session',
+				'customer' => $customer->id
+			]);
+			
+	
+			$setupIntentConfirmations = $stripe->setupIntents->confirm(
+				$setupIntent->id,
+				['payment_method' => $cardStripe]
+			);
+			// When payment is grabbing, use this $setupIntentConfirmation->payment_method as the payment method.
+			// Along with it, send the amount correctly.
+
+			$data = array(
+				'type' => 'success',
+				'dataTtype' => $cardStripe->type,
+				'card' => $cardStripe->card->last4,
+				'intention' => $setupIntentConfirmations
+			);
+			echo wp_send_json_success($data);
+
+		} catch(\Stripe\Exception\CardException $e) {
+			$data = array(
+				'type' => 'error',
+				'status' => 402,
+				'code' => $e->getError()->code,
+				'message' => $e->getError()->message,
+				'last4' => $card['number']
+			);
+
+			echo wp_send_json_error($data);
+		}
+		wp_die();
 	}
 
 	public function ajaxify_cards()
@@ -193,7 +274,6 @@ class Zg_Stripe_Run
 					'last4' => $e->getError()->payment_method->card->last4
 				);
 				continue;
-				// die();
 			} catch (Exception $e) {
 				$data[] = array(
 					'type' => 'error',
@@ -452,16 +532,16 @@ class Zg_Stripe_Run
 			if ($setupIntentConfirmation->status == 'succeeded') {
 				echo $setupIntentConfirmation->status;
 	
-				// $payment_intent = $stripe->paymentIntents->create([
-				// 	"payment_method" => $setupIntentConfirmation->payment_method,
-				// 	'customer' => $customer->id,
-				// 	"amount" => $amount,
-				// 	"currency" => "usd",
-				// 	"confirmation_method" => "automatic",
-				// 	"confirm" => true,
-				// 	"setup_future_usage" => "on_session"
-				// ]);
-				// echo $payment_intent->status;
+				$payment_intent = $stripe->paymentIntents->create([
+					"payment_method" => $setupIntentConfirmation->payment_method,
+					'customer' => $customer->id,
+					"amount" => $amount,
+					"currency" => "usd",
+					"confirmation_method" => "automatic",
+					"confirm" => true,
+					"setup_future_usage" => "on_session"
+				]);
+				echo $payment_intent->status;
 	
 				// Handle successful payment
 			} else {
