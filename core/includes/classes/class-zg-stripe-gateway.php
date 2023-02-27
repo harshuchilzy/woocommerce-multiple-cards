@@ -408,7 +408,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         }
 
         if(!empty($payment_intent)){
-
+            
         }
     }
 
