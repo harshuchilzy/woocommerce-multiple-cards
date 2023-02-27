@@ -367,6 +367,49 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
     public function process_payment($order_id)
     {
         $order = wc_get_order($order_id);
+
+        $cards = $_POST['card'];
+        $options = get_option( 'woocommerce_zg-stripe_settings' );
+		if($options['testmode'] == 'yes'){
+			$privateKey = $options['test_private_key'];
+		}else{
+			$privateKey = $options['private_key'];
+		}
+
+		$stripe = new \Stripe\StripeClient($privateKey);
+        $payment_intent = array();
+        foreach($cards as $card){
+            $amount = $card['amount'] * 100;
+            try{
+                $payment_intent[] = $stripe->paymentIntents->create([
+					"payment_method" => $card['payment_method'],
+					'customer' => $card['customer'],
+					"amount" => $amount,
+					"currency" => strtolower(get_woocommerce_currency()),
+					"confirmation_method" => "automatic",
+					"confirm" => true,
+					"setup_future_usage" => "on_session"
+				]);
+            } catch(\Stripe\Exception\CardException $e) {
+                throw new Exception($e->getError()->message);
+            } catch (\Stripe\Exception\RateLimitException $e) {
+                throw new Exception($e->getError()->message);
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                throw new Exception($e->getError()->message);
+            } catch (\Stripe\Exception\AuthenticationException $e) {
+                throw new Exception($e->getError()->message);
+            } catch (\Stripe\Exception\ApiConnectionException $e) {
+                throw new Exception($e->getError()->message);
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                throw new Exception($e->getError()->message);
+            } catch (Exception $e) {
+                throw new Exception($e->getError()->message);
+            }
+        }
+
+        if(!empty($payment_intent)){
+
+        }
     }
 
     public function webhook()

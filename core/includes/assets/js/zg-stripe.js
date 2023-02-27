@@ -21,6 +21,7 @@ jQuery(document).ready(function ($) {
     $(parent).find('.zg-card-processing').show();
     $(parent).find('.process-elements').show();
     $('.zg-card-stat-note').hide();
+    let index = $(parent).parents('.step').data('index');
     // let thisEle = $(parent).parents('.step').next();
     $(parent).find('.verify-card').prop('disabled', true);
     console.log('Amount ' + amount);
@@ -42,7 +43,9 @@ jQuery(document).ready(function ($) {
         if(response.data.type == 'success'){
           $(parent).find('.zg-card-success').show();
           $(parent).find('.verify-card').addClass('next-btn').removeClass('verify-card').prop('disabled', false);;
-
+          $(parent).append('<input type="hidden" name="card['+index+'][payment_method]" value="'+response.data.intention.payment_method+'"/>')
+          $(parent).append('<input type="hidden" name="card['+index+'][customer]" value="'+response.data.intention.customer+'"/>')
+          $(parent).append('<input type="hidden" name="card['+index+'][amount]" value="'+amount+'"/>')
         }else{
           $(parent).find('#error-msg').text(response.data.message)
           $(parent).find('.zg-card-error').show();
@@ -68,6 +71,18 @@ jQuery(document).ready(function ($) {
     console.log("next click");
     $(this).parents(".step").hide();
     let next = $(this).parents(".step").nextAll(".step").first();
+    if($(next).hasClass('last-step')){
+      $('.cards-list > li').remove();
+
+      $('.card-element-wrap').each(function(i, ele){
+        let cardNo = $(ele).find('.card_ccNo').val();
+        let cardIcon = creditCardType(cardNo);
+        let lastDigits = $.trim(cardNo.substr(cardNo.length - 5));
+        let index = $(ele).data('index');
+        let amount = $('.card-amount-wrap[data-index="'+index+'"]').find('.card-val').val();
+        $('<li data-card="'+lastDigits+'"><div><span>'+cardIcon+' **** **** **** '+lastDigits+'</span><span class="card-list-amount">'+zg.currency + amount+' <i data-index="'+index+'" class="fal fas far fa-pencil"></i></span></div></li>').appendTo('.cards-list');
+      });
+    }
     $(next).show();
     $(next).find('.amount-to-pay').html(syncData.amountToPay)
 
@@ -95,12 +110,6 @@ jQuery(document).ready(function ($) {
     $(this).parents(".step").next().find(".card-amount-to-pay").text(amountToPay);
     $(this).parents(".step").find('.next-btn').prop('disabled', false);
     $(this).parents(".step").next().find(".card-chargable").text(zg.currency + $(this).val());
-  });
-
-  $(document).on("blur", ".card-val", function (e) {
-    // let amountToPay = syncData.amountToPay - $(this).val();
-    // syncData.amountToPay = amountToPay.toFixed(2)
-    // $(this).parents('.step').nextAll('.card-amount-wrap').first().find('.card-val').attr('max', syncData.amountToPay)
   });
 
   $(document).on('keydown', '.card_ccNo', function (e) {
@@ -131,18 +140,12 @@ jQuery(document).ready(function ($) {
     $(this).parents(".step").prevAll(".step").first().show("slow");
   });
 
-  $(document).on('change', '.card_ccNo', function () {
-    // let type = creditCardType($(this).val());
-    // $(this).after('<input type="hidden" class="ccType" value="' + type + '"/>')
-  })
-
   let cardsCount = 1;
   $(document).on("updated_checkout", function (e) {
     // var numbers = new NumberSwiper('card-count');
     $('.card-element-wrap').last().find('.next-btn').addClass('verify-cards').text('Verify cards');
 
     $(document).on('change', '.card_count', function(){
-    // var onchanged = function (index) {
       let index = $(this).val()
       cardsCount = index;
       let cloneCardAmountEle = $('.card-amount-wrap').first().clone();
