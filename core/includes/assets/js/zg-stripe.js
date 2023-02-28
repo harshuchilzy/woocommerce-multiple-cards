@@ -1,8 +1,9 @@
 jQuery(document).ready(function ($) {
-  console.log(zg);
-
-  var numbers = new NumberSwiper('myNumberSwiper');
-  console.log(numbers)
+  var syncData = {}
+  syncData.totalSteps = 4;
+  syncData.currentStep = 1;
+  // var numbers = new NumberSwiper('myNumberSwiper');
+  // console.log(numbers)
 
   $(document).on('click', '.verify-card', function(e){
     e.preventDefault();
@@ -24,6 +25,15 @@ jQuery(document).ready(function ($) {
     let index = $(parent).parents('.step').data('index');
     // let thisEle = $(parent).parents('.step').next();
     $(parent).find('.verify-card').prop('disabled', true);
+    console.log({
+      action: "create_setup_intention",
+      email: email,
+      cardNo : cardNo,
+      expiry: expiry,
+      csv: csv,
+      amount: amount,
+      nonce: $('#zg-nonce').val()
+    })
     console.log('Amount ' + amount);
     $.ajax({
       method: 'POST',
@@ -43,9 +53,9 @@ jQuery(document).ready(function ($) {
         if(response.data.type == 'success'){
           $(parent).find('.zg-card-success').show();
           $(parent).find('.verify-card').addClass('next-btn').removeClass('verify-card').prop('disabled', false);;
-          $(parent).append('<input type="hidden" name="card['+index+'][payment_method]" value="'+response.data.intention.payment_method+'"/>')
-          $(parent).append('<input type="hidden" name="card['+index+'][customer]" value="'+response.data.intention.customer+'"/>')
-          $(parent).append('<input type="hidden" name="card['+index+'][amount]" value="'+amount+'"/>')
+          $(parent).append('<input class="intentionData" type="hidden" name="card['+index+'][payment_method]" value="'+response.data.intention.payment_method+'"/>')
+          $(parent).append('<input class="intentionData" type="hidden" name="card['+index+'][customer]" value="'+response.data.intention.customer+'"/>')
+          $(parent).append('<input class="intentionData" type="hidden" name="card['+index+'][amount]" value="'+amount+'"/>')
         }else{
           $(parent).find('#error-msg').text(response.data.message)
           $(parent).find('.zg-card-error').show();
@@ -60,6 +70,11 @@ jQuery(document).ready(function ($) {
 
   $("form.woocommerce-checkout").on("click", ".next-btn:not(.verify-cards)", function (e) {
     e.preventDefault();
+    $(this).parents('.step').next().find('.totalSteps').html(syncData.totalSteps);
+    syncData.currentStep += 1;
+    let width = Math.ceil(Math.floor((syncData.currentStep / syncData.totalSteps) * 100)/ 10) * 10;
+    $(this).parents('.step').next().find('.stepWidth').addClass('w-'+width);
+    $(this).parents('.step').next().find('.currentStep').html(syncData.currentStep);
 
     if($(this).parents('.step').find('.card-val').length > 0){
       let cardVal = $(this).parents('.step').find('.card-val').val();
@@ -80,7 +95,7 @@ jQuery(document).ready(function ($) {
         let lastDigits = $.trim(cardNo.substr(cardNo.length - 5));
         let index = $(ele).data('index');
         let amount = $('.card-amount-wrap[data-index="'+index+'"]').find('.card-val').val();
-        $('<li data-card="'+lastDigits+'"><div><span>'+cardIcon+' **** **** **** '+lastDigits+'</span><span class="card-list-amount">'+zg.currency + amount+' <i data-index="'+index+'" class="fal fas far fa-pencil"></i></span></div></li>').appendTo('.cards-list');
+        $('<li data-card="'+lastDigits+'"><div><span>'+cardIcon+' **** **** **** '+lastDigits+'</span><span class="card-list-amount">'+zg.currency + amount+' <i data-index="'+index+'" class="editCard fas fa-pencil-alt"></i></span></div></li>').appendTo('.cards-list');
       });
     }
     $(next).show();
@@ -90,18 +105,28 @@ jQuery(document).ready(function ($) {
     $('.card-element-wrap').last().find('.next-btn').addClass('list-cards');
   });
 
+  $(document).on('change', '.card_ccNo, .card_expdate, .card_cvv', function () {
+   if($(this).parents('.step').find('.intentionData').length > 0){
+    $(this).parents('.step').find('.intentionData').remove();
+    $(this).parents('.step').find('.card-next-btn').addClass('verify-card').removeClass('next-btn')
+   }
+ });
+
+  $(document).on('click', '.editCard', function(e){
+    let index = $(this).data('index');
+    $('.card-element-wrap[data-index="'+index+'"]').find('.process-elements').hide();
+    $('.card-element-wrap[data-index="'+index+'"]').find('.card-element').show();
+    $('.card-element-wrap[data-index="'+index+'"]').show();
+    $(this).parents('.step').hide();
+  })
+
   $(document).on("click", ".assign-value", function () {
     $(this).parents(".step-inner").find(".card-val").val($(this).val()).trigger("change");
   });
-  var syncData = {}
+
   syncData.amountToPay = zg.orderTotal;
 
   $(document).on("change", ".card-val", function (e) {
-
-    if($(this).val() > $(this).attr('max')){
-      // $(this).val($(this).attr('max'))
-    }
-
     var amountToPay = syncData.amountToPay;
     amountToPay = amountToPay - $(this).val();
     amountToPay = zg.currency + amountToPay.toFixed(2);
@@ -112,37 +137,35 @@ jQuery(document).ready(function ($) {
     $(this).parents(".step").next().find(".card-chargable").text(zg.currency + $(this).val());
   });
 
-  $(document).on('keydown', '.card_ccNo', function (e) {
-    if ($(this).val().length > 0) {
-
-      if ($(this).val().replace(/\s/g, '').length % 4 == 0) {
-        let val = $(this).val() + " ";
-        $(this).val(val)
-      }
-      
-    }
-  });
-
-  $(document).on('keydown', '.card_expdate', function (e) {
-    if ($(this).val().length > 0 && $(this).val().length < 5) {
-
-      if ($(this).val().replace('/', '').length % 2 == 0) {
-        let val = $(this).val() + "/";
-        $(this).val(val)
-      }
-    }
-  });
-
-  $("form.woocommerce-checkout").on("click", ".prev-btn", function (e) {
+ $("form.woocommerce-checkout").on("click", ".prev-btn", function (e) {
     e.preventDefault();
-    console.log("prev click");
-    $(this).parents(".step").hide("slow");
-    $(this).parents(".step").prevAll(".step").first().show("slow");
+    $(this).parents('.step').prevAll().first().find('.totalSteps').html(syncData.totalSteps);
+    syncData.currentStep -= 1;
+    let width = Math.ceil(Math.floor((syncData.currentStep / syncData.totalSteps) * 100)/ 10) * 10;
+    $(this).parents('.step').prevAll().first().find('.stepWidth').addClass('w-'+width);
+    $(this).parents('.step').prevAll().first().find('.currentStep').html(syncData.currentStep);
+
+    if($(this).parents('.step-inner').find('.process-elements').length > 0 && $(this).parents('.step-inner').find('.process-elements').is(':visible')){
+      $(this).parents('.step-inner').find('.process-elements').hide();
+      $(this).parents('.step-inner').find('.card-element').show();
+      $(this).parents('.step-inner').find('.verify-card').prop('disabled', false);
+    }
+    if($(this).parents('.step-inner').find('.card-elements').length > 0 && !$(this).parents('.step-inner').find('.process-elements').is(':visible')){
+      $(this).parents(".step").hide("slow");
+      $(this).parents(".step").prevAll(".step").first().show();
+    }
+    else{
+      $(this).parents(".step").hide("slow");
+      $(this).parents(".step").prevAll(".step").first().show();
+    }
   });
 
   let cardsCount = 1;
   $(document).on("updated_checkout", function (e) {
-    // var numbers = new NumberSwiper('card-count');
+    $('.card_ccNo').payform('formatCardNumber');
+    $('.card_expdate').payform('formatCardExpiry');
+    $('.card_cvv').payform('formatCardCVC');
+
     $('.card-element-wrap').last().find('.next-btn').addClass('verify-cards').text('Verify cards');
 
     $(document).on('change', '.card_count', function(){
@@ -169,13 +192,21 @@ jQuery(document).ready(function ($) {
           $(cloneCardEle).attr('data-index', i);
           $(cloneCardEle).find('input').each(function (key, ele) {
             let name = $(ele).data('name');
+            if(name == 'card_number'){
+              $(ele).payform('formatCardNumber');
+            }else if(name == 'card_expiry'){
+              $(ele).payform('formatCardExpiry');
+            }else if(name == 'card_csv'){
+              $(ele).payform('formatCardCVC');
+            }
+
             $(ele).attr('name', 'card[' + i + '][' + name + ']')
           })
           console.log(i + 'and ' + index)
           
           $(cloneCardEle).insertBefore('.last-step');
           $(document).trigger('card-cloned', cloneCardEle);
-
+          syncData.totalSteps += 2;
         }
       }
       if (index < $('.card-amount-wrap').length) {
@@ -187,6 +218,7 @@ jQuery(document).ready(function ($) {
           }
           console.log('delete' + j)
           $('.step[data-index=' + j + ']').remove()
+          syncData.totalSteps -= 2;
         }
       }
 
@@ -194,86 +226,7 @@ jQuery(document).ready(function ($) {
       $('.list-cards').removeClass('list-cards');
       $('.card-element-wrap').last().find('.next-btn').addClass('list-cards');
     });
-
   });
-
-  $(document).on('card-cloned', function (ele) {
-    $(this).parents('.step-inner').card({
-
-      // number formatting
-      formatting: true,
-
-      // selectors
-      formSelectors: {
-        numberInput: $(ele).find('.card_ccNo'),
-        expiryInput: $(ele).find('.card_expiry'),
-        cvcInput: $(ele).find('.card_cvv'),
-      }
-    });
-  });
-
-  $(document).on('click', '.verify-cards', function(e){
-    let validate = $('#billing_email').trigger('validate');
-    console.log(validate)
-    if(syncData.amountToPay > 0){
-      console.log('You have more remaining balance');
-      e.preventDefault();
-      return false;
-    }
-
-    // verify-step
-    $('.cards-list > li').remove();
-
-    $('.card-element-wrap').each(function(i, ele){
-      let cardNo = $(ele).find('.card_ccNo').val();
-      let cardIcon = creditCardType(cardNo);
-      let lastDigits = $.trim(cardNo.substr(cardNo.length - 5));
-      let index = $(ele).data('index');
-      let amount = $('.card-amount-wrap[data-index="'+index+'"]').find('.card-val').val();
-      $('<li data-card="'+lastDigits+'"><div><span>'+cardIcon+' **** **** **** '+lastDigits+'</span><span class="card-list-amount">'+zg.currency + amount+' <i data-index="'+index+'" class="fal fas far fa-pencil"></i></span></div></li>').appendTo('.cards-list');
-    });
-
-
-    if($('#billing_email_field').hasClass('woocommerce-validated') == false){
-      e.preventDefault();
-      return false;
-    }
-
-    $('.verify-step').show();
-
-
-    // return false;
-    console.log($('#zg-nonce').val())
-    var form = $("form.checkout").serialize();
-    console.log(form)
-    $.ajax({
-      method: 'POST',
-      url : zg.ajaxurl,
-      data : {action: "ajaxify_cards", form : form, nonce: $('#zg-nonce').val()},
-      success: function(response) {
-        console.log(response)
-        $('.last-step').show()
-        $.each(response.data, function(i, data){
-          console.log(data)
-          if(data.type == "success"){
-            $('li[data-card="'+data.card+'"]').addClass('validated');
-          }else if(data.type == 'error'){
-            let digits = $.trim(data.last4.substr(data.last4.length - 4));
-            $('li[data-card="'+digits+'"]').append('<p class="text-error">'+data.message+'</p>')
-          }
-        });
-        //  if(response.type == "success") {
-        //     jQuery("#like_counter").html(response.like_count);
-        //  }
-        //  else {
-        //     alert("Your like could not be added");
-        //  }
-      },
-      error: function(e){
-        console.log(e)
-      }
-   });
-  })
 
   function creditCardType(cc) {
     let amex = new RegExp("^3[47][0-9]{13}$");

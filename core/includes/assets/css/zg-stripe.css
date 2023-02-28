@@ -156,7 +156,14 @@ div#spinner-here {
 ul.cards-list {
   margin: 0;
 }
-
+ul.cards-list > li {
+  border: solid 1px #ccc !important;
+  width: 100%;
+  margin-bottom: 5px;
+  padding: 5px !important;
+  border-radius: 5px;
+  background-color: #e7e7e7;
+}
 ul.cards-list > li > div {
   display: flex;
   justify-content: space-between;
@@ -179,4 +186,36 @@ p.text-center {
 
 .zg-card-processing, .zg-card-stat-note {
   margin: 20px auto;
+}
+input.card_ccNo.invalid {
+  border: solid 1px #bc3017;
+}
+ul.cards-list > li {
+  border: solid 1px #ccc !important;
+  width: 100%;
+  margin-bottom: 5px;
+  /* padding: 5px !important; */
+  border-radius: 5px;
+  background-color: #e7e7e7;
+}
+
+span.card-list-amount > i {
+  cursor: pointer;
+  margin-left: 15px;
+  color: #bc3017;
+  border-left: solid 1px #ccc;
+  padding: 10px;
+}
+
+ul.cards-list > li > div > span {
+  padding: 5px;
+}
+
+span.card-list-amount {
+  padding: 0 !important;
+  height: 100%;
+}
+
+span.card-list-amount {
+  font-size: 16px;
 }

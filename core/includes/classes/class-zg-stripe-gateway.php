@@ -13,7 +13,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         // gateways can support subscriptions, refunds, saved payment methods,
         // but in this tutorial we begin with simple payments
         $this->supports = array(
-            'products'
+            'products',
         );
 
         // Method with all the options fields
@@ -56,49 +56,53 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
     {
         $this->form_fields = array(
             'enabled' => array(
-                'title'       => 'Enable/Disable',
-                'label'       => 'Enable ZG Stripe Gateway',
-                'type'        => 'checkbox',
+                'title' => 'Enable/Disable',
+                'label' => 'Enable ZG Stripe Gateway',
+                'type' => 'checkbox',
                 'description' => '',
-                'default'     => 'no'
+                'default' => 'no',
             ),
             'title' => array(
-                'title'       => 'Title',
-                'type'        => 'text',
+                'title' => 'Title',
+                'type' => 'text',
                 'description' => 'This controls the title which the customer sees during checkout.',
-                'default'     => 'Credit Card',
-                'desc_tip'    => true,
+                'default' => 'Credit Card',
+                'desc_tip' => true,
             ),
             'description' => array(
-                'title'       => 'Description',
-                'type'        => 'textarea',
+                'title' => 'Description',
+                'type' => 'textarea',
                 'description' => 'This controls the description which the customer sees during checkout.',
-                'default'     => 'Pay with multiple credit cards via our ZG stripe payment gateway.',
+                'default' => 'Pay with multiple credit cards via our ZG stripe payment gateway.',
             ),
             'testmode' => array(
-                'title'       => 'Test mode',
-                'label'       => 'Enable Test Mode',
-                'type'        => 'checkbox',
+                'title' => 'Test mode',
+                'label' => 'Enable Test Mode',
+                'type' => 'checkbox',
                 'description' => 'Place the payment gateway in test mode using test API keys.',
-                'default'     => 'yes',
-                'desc_tip'    => true,
+                'default' => 'yes',
+                'desc_tip' => true,
             ),
             'test_publishable_key' => array(
-                'title'       => 'Test Publishable Key',
-                'type'        => 'text'
+                'title' => 'Test Publishable Key',
+                'type' => 'text',
             ),
             'test_private_key' => array(
-                'title'       => 'Test Secret Key',
-                'type'        => 'password',
+                'title' => 'Test Secret Key',
+                'type' => 'password',
             ),
             'publishable_key' => array(
-                'title'       => 'Live Publishable Key',
-                'type'        => 'text'
+                'title' => 'Live Publishable Key',
+                'type' => 'text',
             ),
             'private_key' => array(
-                'title'       => 'Live Secret Key',
-                'type'        => 'password'
-            )
+                'title' => 'Live Secret Key',
+                'type' => 'password',
+            ),
+            'webhook_secret' => array(
+                'title' => 'Webhook Secret',
+                'type' => 'password',
+            ),
         );
     }
 
@@ -109,7 +113,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
             // you can instructions for test mode, I mean test card numbers etc.
             if ($this->testmode) {
                 $this->description .= ' TEST MODE ENABLED. In test mode, you can use the card numbers listed in <a href="#">documentation</a>.';
-                $this->description  = trim($this->description);
+                $this->description = trim($this->description);
             }
             // display the description with <p> tags etc.
             echo wpautop(wp_kses_post($this->description));
@@ -119,7 +123,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         echo '<fieldset id="wc-' . esc_attr($this->id) . '-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">';
 
         // Add this action hook if you want your custom payment gateway to support it
-        do_action('woocommerce_credit_card_form_start', $this->id); 
+        do_action('woocommerce_credit_card_form_start', $this->id);
         $cartTotal = WC()->cart->total;
         ?>
         <script src="https://js.stripe.com/v3/"></script>
@@ -155,9 +159,9 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
             <div class="step second-step repeatable-card card-amount-wrap" data-index="1" style="display: none">
                 <div>
-                    <span class="text-right w-100 inline-block">2 of 8</span>
+                    <span class="text-right w-100 inline-block"><span class="currentStep">1</span> of <span class="totalSteps">4</span>
                     <div class="bar-wrap">
-                        <div class="bar w-20"></div>
+                        <div class="bar stepWidth"></div>
                     </div>
                 </div>
                 <h4>Enter the amount you would like to pay with your <b>First Card.</b></h4>
@@ -170,15 +174,15 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                     </div>
                     <div class="predefine-value-wrapper">
                         <?php
-                        
+
                         // for ($i = $cartTotal / 4; $i <= $cartTotal; $i += $cartTotal / 4) {
                         //     $value = number_format(round($i - 1, 0, PHP_ROUND_HALF_DOWN), 2);
                         //     echo "<button class='pink-btn assign-value' value='{$value}' type='button'>" . wc_price($value) . "</button>";
                         // }
-                        echo "<button class='pink-btn assign-value' value='50' type='button' ". ($cartTotal <= 50 ? 'disabled' : '') .">" . wc_price(50) . "</button>";
-                        echo "<button class='pink-btn assign-value' value='100' type='button' ". ($cartTotal <= 100 ? 'disabled' : '') .">" . wc_price(100) . "</button>";
-                        echo "<button class='pink-btn assign-value' value='250' type='button' ". ($cartTotal <= 250 ? 'disabled' : '') .">" . wc_price(250) . "</button>";
-                        echo "<button class='pink-btn assign-value' value='500' type='button' ". ($cartTotal <= 500 ? 'disabled' : '') .">" . wc_price(500) . "</button>";
+                        echo "<button class='pink-btn assign-value' value='50' type='button' " . ($cartTotal <= 50 ? 'disabled' : '') . ">" . wc_price(50) . "</button>";
+                        echo "<button class='pink-btn assign-value' value='100' type='button' " . ($cartTotal <= 100 ? 'disabled' : '') . ">" . wc_price(100) . "</button>";
+                        echo "<button class='pink-btn assign-value' value='250' type='button' " . ($cartTotal <= 250 ? 'disabled' : '') . ">" . wc_price(250) . "</button>";
+                        echo "<button class='pink-btn assign-value' value='500' type='button' " . ($cartTotal <= 500 ? 'disabled' : '') . ">" . wc_price(500) . "</button>";
 
                         ?>
                     </div>
@@ -196,9 +200,9 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
             <div class="step second-step repeatable-card card-element-wrap" data-index="1" style="display: none">
                 <div>
-                    <span class="text-right w-100 inline-block">2 of 8</span>
+                    <span class="text-right w-100 inline-block"><span class="currentStep">1</span> of <span class="totalSteps">4</span></span>
                     <div class="bar-wrap">
-                        <div class="bar w-40"></div>
+                        <div class="bar stepWidth"></div>
                     </div>
                 </div>
                 <h4>This card will be charged <b class="card-chargable">0</b></h4>
@@ -209,7 +213,7 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                         </div>
                         <div class="form-row form-row-first">
                             <label>Expiry Date</label>
-                            <input class="card_expdate" maxlength="5" data-name="card_expiry" name="card[1][card_expiry]" type="text" autocomplete="off" placeholder="MM / YY">
+                            <input class="card_expdate" data-name="card_expiry" name="card[1][card_expiry]" type="text" autocomplete="off" placeholder="MM / YY">
                         </div>
                         <div class="form-row form-row-last">
                             <label>Cvv</label>
@@ -249,54 +253,16 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
                     </div>
                     <div class="button-wrap">
                         <button class="red-btn prev-btn" type="button"><i class="fas fa-chevron-left"></i> Back</button>
-                        <button class="red-btn next-btnzz verify-card" type="button">Next</button>
+                        <button class="red-btn card-next-btn verify-card" type="button">Next</button>
                     </div>
                 </div>
             </div>
 
-            <!-- <div class="step verify-step" style="display: nonez">
-                <div>
-                    <span class="text-right w-100 inline-block">7 of 8</span>
-                    <div class="bar-wrap">
-                        <div class="bar w-90"></div>
-                    </div>
-                </div>
-                <div class="step-inner">
-                    <div class="zg-card-processing">
-                        <div style="width: 150px; margin: 0 auto;padding: 45px; border-radius: 100%; border: solid 2px #ccc">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#999" class="w-6 h-6" class="w-6 h-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                            </svg>
-                        </div>
-                        <p class="text-center">Processing</p>
-                    </div>
-
-                    <div class="zg-card-error zg-card-stat-note" style="display:none">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="0.3" stroke="#bc3017" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p class="text-center">Please use another card. <span id="error-msg"></span></p>
-                    </div>
-                    <div class="zg-card-success zg-card-stat-note" style="display:none">
-                        <div style="width: 150px; margin: 0 auto;padding: 45px; border-radius: 100%; border: solid 2px #44df1e">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#44df1e" class="w-2 h-2" style="height: 50px; width: 58px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                            </svg>
-                        </div>
-                        <p class="text-center">Verifying Balance on cards</p>
-                    </div>
-                    <div class="button-wrap">
-                        <button class="red-btn prev-btn" type="button"><i class="fas fa-chevron-left"></i> Back</button>
-                        <button class="red-btn next-btn" type="button">Next</button>
-                    </div>
-                </div>
-            </div> -->
-
             <div class="step last-step" style="display: none">
                 <div>
-                    <span class="text-right w-100 inline-block">2 of 8</span>
+                    <span class="text-right w-100 inline-block"><span class="currentStep">1</span> of <span class="totalSteps"></span>
                     <div class="bar-wrap">
-                        <div class="bar w-90"></div>
+                        <div class="bar w-100"></div>
                     </div>
                 </div>
                 <h4 id="zg-card-default-note">These cards will charged the respective amounts. tap any row to edit card or amount</h4>
@@ -308,19 +274,10 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
             </div>
         </div>
 <?php
-        do_action('woocommerce_zg_credit_card_form_end', $this->id);
+do_action('woocommerce_zg_credit_card_form_end', $this->id);
 
         echo '<div class="clear"></div></fieldset>';
     }
-
-    // public function ajaxify_cards()
-    // {
-    //     // if ( !wp_verify_nonce( $_REQUEST['nonce'], "zg_cards_nonce")) {
-    //     //     exit("Woof Woof Woof");
-    //     // } 
-    //     echo 'OK';
-    //     die();
-    // }
 
     public function payment_scripts()
     {
@@ -341,13 +298,15 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
 
         // wp_enqueue_script('zg-number-spinner-picker-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/spinner_picker.js', array('jquery'), '1.0', true);
         wp_enqueue_script('zg-number-card-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.card.js', array('jquery'), '1.0', true);
+        wp_enqueue_script('zg-number-card-validator-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.creditCardValidator.js', array('jquery'), '1.0', true);
+        wp_enqueue_script('zg-number-card-validator-new-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.payform.min.js', array('jquery'), '1.0', true);
         // wp_enqueue_script('zg-jquery-steps-js', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/jquery.steps.min.js', array('jquery'), '1.0', true);
         wp_register_script('zg-stripe-gateway', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/js/zg-stripe.js', array('jquery'));
         wp_localize_script('zg-stripe-gateway', 'zg', array(
             'publishableKey' => $this->publishable_key,
             'orderTotal' => WC()->cart->total,
             'currency' => get_woocommerce_currency_symbol(),
-            'ajaxurl' => admin_url('admin-ajax.php')
+            'ajaxurl' => admin_url('admin-ajax.php'),
         ));
         wp_enqueue_script('zg-stripe-gateway');
         wp_enqueue_style('zg-stripe-css', ZGSTRIPE_PLUGIN_URL . 'core/includes/assets/css/zg-stripe.css', array(), '1.0.0');
@@ -369,54 +328,124 @@ class WC_ZGStripe_Gateway extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
 
         $cards = $_POST['card'];
-        $options = get_option( 'woocommerce_zg-stripe_settings' );
-		if($options['testmode'] == 'yes'){
-			$privateKey = $options['test_private_key'];
-		}else{
-			$privateKey = $options['private_key'];
-		}
+        $options = get_option('woocommerce_zg-stripe_settings');
+        if ($options['testmode'] == 'yes') {
+            $privateKey = $options['test_private_key'];
+        } else {
+            $privateKey = $options['private_key'];
+        }
 
-		$stripe = new \Stripe\StripeClient($privateKey);
-        $payment_intent = array();
-        foreach($cards as $card){
+        $stripe = new \Stripe\StripeClient($privateKey);
+        $payment_intents = array();
+        foreach ($cards as $card) {
             $amount = $card['amount'] * 100;
-            try{
-                $payment_intent[] = $stripe->paymentIntents->create([
-					"payment_method" => $card['payment_method'],
-					'customer' => $card['customer'],
-					"amount" => $amount,
-					"currency" => strtolower(get_woocommerce_currency()),
-					"confirmation_method" => "automatic",
-					"confirm" => true,
-					"setup_future_usage" => "on_session"
-				]);
-            } catch(\Stripe\Exception\CardException $e) {
+            if (empty($card['payment_method'])) {continue;}
+            try {
+                $payment_intent = $stripe->paymentIntents->create([
+                    "payment_method" => $card['payment_method'],
+                    'customer' => $card['customer'],
+                    "amount" => $amount,
+                    "currency" => strtolower(get_woocommerce_currency()),
+                    "metadata" => array('order_id' => $order_id),
+                    "confirmation_method" => "automatic",
+                    "confirm" => true,
+                    "setup_future_usage" => "on_session",
+                ]);
+                $payment_intents[] = array(
+                    'payment_method' => $card['payment_method'],
+                    'amount' => $amount,
+                );
+
+            } catch (\Stripe\Exception\CardException$e) {
                 throw new Exception($e->getError()->message);
-            } catch (\Stripe\Exception\RateLimitException $e) {
+            } catch (\Stripe\Exception\RateLimitException$e) {
                 throw new Exception($e->getError()->message);
-            } catch (\Stripe\Exception\InvalidRequestException $e) {
+            } catch (\Stripe\Exception\InvalidRequestException$e) {
                 throw new Exception($e->getError()->message);
-            } catch (\Stripe\Exception\AuthenticationException $e) {
+            } catch (\Stripe\Exception\AuthenticationException$e) {
                 throw new Exception($e->getError()->message);
-            } catch (\Stripe\Exception\ApiConnectionException $e) {
+            } catch (\Stripe\Exception\ApiConnectionException$e) {
                 throw new Exception($e->getError()->message);
-            } catch (\Stripe\Exception\ApiErrorException $e) {
+            } catch (\Stripe\Exception\ApiErrorException$e) {
                 throw new Exception($e->getError()->message);
             } catch (Exception $e) {
                 throw new Exception($e->getError()->message);
             }
         }
 
-        if(!empty($payment_intent)){
-            
+        if (!empty($payment_intents)) {
+            $order_received_url = $order->get_checkout_order_received_url();
+            update_post_meta($order_id, 'payment_intents', $payment_intents);
+
+            return array(
+                'result' => 'success',
+                'redirect' => $order_received_url,
+            );
         }
     }
 
     public function webhook()
     {
-        $order = wc_get_order($_GET['id']);
-        $order->payment_complete();
-        $order->reduce_order_stock();
+        $logger = wc_get_logger();
+        // $order = wc_get_order($_GET['id']);
+        // $order->payment_complete();
+        // $order->reduce_order_stock();
+        $options = get_option('woocommerce_zg-stripe_settings');
+
+        $endpoint_secret = $options['webhook_secret'];
+
+        $payload = @file_get_contents('php://input');
+        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+        $event = null;
+        // $logger->info('Webhook - ' . json_encode($sig_header), array( 'source' => 'zg-stripe' ));
+
+        try {
+            $event = \Stripe\Webhook::constructEvent(
+                $payload, $sig_header, $endpoint_secret
+            );
+        } catch (\UnexpectedValueException$e) {
+            // Invalid payload
+            http_response_code(400);
+            exit();
+        } catch (\Stripe\Exception\SignatureVerificationException$e) {
+            // Invalid signature
+            http_response_code(400);
+            exit();
+        }
+
+        // Handle the event
+        switch ($event->type) {
+            case 'payment_intent.succeeded':
+                $paymentIntent = $event->data->object;
+                $order = wc_get_order($paymentIntent->metadata['order_id']);
+                $logger->info('Webhook - ' . json_encode($paymentIntent), array('source' => 'zg-stripe'));
+                $intents = get_post_meta($order->get_id(), 'payment_intents', false);
+               
+                $newIntent = array();
+                foreach ($intents as $key => $intent) {
+                    $logger->info('Webhook Intents - ' . ($intent[0]['payment_method']) . ' and ' . $paymentIntent->payment_method, array('source' => 'zg-stripe'));
+
+                    if ($intent[0]['payment_method'] == $paymentIntent->payment_method && $intent[0]['amount'] == $paymentIntent->amount_received) {
+                        $logger->info('Webhook OK - ' . json_encode($intent[0]['payment_method']), array('source' => 'zg-stripe'));
+                        $intents[$key]['status'] = 'paid';
+                    }
+                }
+                if (!empty($newIntent)) {
+                    update_post_meta($order->get_id(), 'payment_intents', $intents);
+                }
+
+                if (array_column($intents, 'status')) {
+                    $order->payment_complete();
+                    $order->reduce_order_stock();
+                }
+
+            // ... handle other event types
+            default:
+
+                echo 'Received unknown event type ' . $event->type;
+        }
+
+        http_response_code(200);
 
         update_option('webhook_debug', $_GET);
     }
